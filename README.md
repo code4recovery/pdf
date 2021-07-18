@@ -51,8 +51,9 @@ This script skips any meetings that are:
 * [x] group by region / sub-region
 * [x] home page form
 * [x] publish
+* [x] invalid URL / JSON error handling
+* [x] stream mode
 * [ ] google sheet support
-* [ ] invalid URL handling
-* [ ] invalid JSON handling
 * [ ] printing screencast video
 * [ ] mode to show which meetings are skipped
+* [ ] remember last form values in cookie

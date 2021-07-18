@@ -22,23 +22,44 @@ Route::get('/', function (Request $request) {
     $height = floatval(request('height', 11)) * 72;
     $font = request('font') === 'sans-serif' ? 'Helvetica' : 'Georgia';
     $numbering = intval(request('numbering', 1));
+    $stream = request('mode') === 'stream';
 
+    //show home page if JSON isn't set
     if (!$json) {
-        return view('home');
+        $fonts = [
+            'serif' => 'Serif',
+            'sans-serif' => 'Sans Serif',
+        ];
+        $modes = [
+            'stream' => 'Stream (in-browser)',
+            'download' => 'Download',
+        ];
+        return view('home', compact('fonts', 'modes'));
     }
 
     //fetch data
-    $json = json_decode(file_get_contents($json));
+    $data = @file_get_contents($json);
+    if (!$data) {
+        return back()->with('error', 'Could not fetch data. Please check the address.')->withInput();
+    }
+
+    //parse JSON
+    $meetings = @json_decode($data);
+    if (!is_array($meetings)) {
+        return back()->with('error', 'Could not parse JSON data. Response was ' . substr(trim($data), 0, 100) . '…')->withInput();
+    }
 
     //process data
-    $days = processData($json);
+    $days = processData($meetings);
 
     //dd($meetings);
 
     //output PDF
     $pdf = PDF::loadView('pdf', compact('days', 'font', 'numbering'))->setPaper([0, 0, $width, $height]);
-    //return $pdf->stream();
-    return $pdf->download('inside-pages.pdf');
+    if ($stream) {
+        return $pdf->stream();
+    }
+    return $pdf->download('directory.pdf');
 });
 
 function processData($meetings)
@@ -96,7 +117,7 @@ function processData($meetings)
             $meeting->address = $address;
         }
 
-        if ($meeting->location === $meeting->address || $meeting->location === $meeting->formatted_address) {
+        if ($meeting->location === $meeting->address || (!empty($meeting->formatted_address) && $meeting->location === $meeting->formatted_address)) {
             $meeting->location = null;
         }
 

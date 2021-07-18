@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <style type="text/css">
             @page {
-                margin: 20px;
+                margin: 18px;
             }
             body {
                 color: black;
@@ -24,7 +24,7 @@
             h3 {
                 font-size: 9pt;
                 font-weight: normal;
-                margin: 5px 0;
+                margin: 5px 0 7px;
                 page-break-after: avoid;
                 text-decoration: underline;
                 text-transform: uppercase;
@@ -45,13 +45,14 @@
                 position: absolute;
                 top: 0;
                 width: 65px;
+                font-size: 9pt;
+                padding-top: 2.5px;
             }
             .meeting .meeting-time {
                 left: 0;
             }
             .meeting .meeting-codes {
                 right: 0;
-                font-size: 9pt;
             }
             .meeting .meeting-name {
                 font-weight: bold;

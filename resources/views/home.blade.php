@@ -27,6 +27,13 @@
                                 >.
                             </p>
                         </div>
+                        @if (session('error'))
+                        <div class="col-12 mb-3">
+                            <div class="alert alert-danger">
+                                {{ session("error") }}
+                            </div>
+                        </div>
+                        @endif
                         <div class="col-12 mb-3">
                             <label for="json" class="form-label"
                                 >JSON Feed</label
@@ -36,11 +43,16 @@
                                 name="json"
                                 id="json"
                                 type="url"
-                                value="https://aasanjose.org/wp-admin/admin-ajax.php?action=meetings"
+                                value="{{
+                                    old(
+                                        'json',
+                                        'https://demo.code4recovery.org/wp-admin/admin-ajax.php?action=meetings'
+                                    )
+                                }}"
                                 required
                             />
                         </div>
-                        <div class="col-sm-6 mb-3">
+                        <div class="col-sm-4 mb-3">
                             <label for="width" class="form-label">Width</label>
                             <input
                                 class="form-control"
@@ -49,10 +61,10 @@
                                 required
                                 step="0.01"
                                 type="number"
-                                value="4.25"
+                                value="{{ old('width', 4.25) }}"
                             />
                         </div>
-                        <div class="col-sm-6 mb-3">
+                        <div class="col-sm-4 mb-3">
                             <label for="height" class="form-label"
                                 >Height</label
                             >
@@ -63,10 +75,10 @@
                                 required
                                 step="0.01"
                                 type="number"
-                                value="11"
+                                value="{{ old('height', 11) }}"
                             />
                         </div>
-                        <div class="col-sm-6 mb-3">
+                        <div class="col-sm-4 mb-3">
                             <label for="numbering" class="form-label"
                                 >Start #</label
                             >
@@ -76,17 +88,44 @@
                                 name="numbering"
                                 required
                                 type="number"
-                                value="1"
+                                value="{{ old('numbering', 1) }}"
                             />
                         </div>
                         <div class="col-sm-6 mb-3">
-                            <label for="font" class="form-label">Font</label>
-                            <select class="form-control" id="font" name="font">
-                                <option value="sans-serif" selected>
-                                    Sans Serif
-                                </option>
-                                <option value="serif">Serif</option>
-                            </select>
+                            <label class="form-label">Font</label>
+                            @foreach ($fonts as $font => $label)
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio"
+                                name="font" value="{{ $font }}" id="font-{{
+                                    $font
+                                }}" @if ($font === old('font', 'sans-serif'))
+                                checked @endif />
+                                <label
+                                    class="form-check-label"
+                                    for="font-{{ $font }}"
+                                >
+                                    {{ $label }}
+                                </label>
+                            </div>
+                            @endforeach
+                        </div>
+                        <div class="col-sm-6 mb-3">
+                            <label class="form-label">Mode</label>
+                            @foreach ($modes as $mode => $label)
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio"
+                                name="mode" value="{{ $mode }}" id="mode-{{
+                                    $mode
+                                }}" @if ($mode === old('mode', 'download'))
+                                checked @endif />
+                                <label
+                                    class="form-check-label"
+                                    for="mode-{{ $mode }}"
+                                >
+                                    {{ $label }}
+                                </label>
+                            </div>
+                            @endforeach
                         </div>
                         <div class="col-12 text-center mt-3">
                             <input
