@@ -122,20 +122,24 @@ function processData($meetings)
         }
 
         //region(s)
-        if (empty($meeting->regions)) {
-            if (empty($meeting->region)) {
-                $meeting->regions_formatted = '';
-            } else {
-                $meeting->regions_formatted = $meeting->region;
-                if (!empty($meeting->sub_region)) {
-                    $meeting->regions_formatted .= ': ' . $meeting->sub_region;
-                }
+        if (!empty($meeting->regions)) {
+            $meeting->regions_formatted = implode(': ', $meeting->regions);
+        } elseif (!empty($meeting->region)) {
+            $meeting->regions_formatted = $meeting->region;
+            if (!empty($meeting->sub_region)) {
+                $meeting->regions_formatted .= ': ' . $meeting->sub_region;
+            }
+        } elseif (!empty($meeting->city)) {
+            $meeting->regions_formatted = $meeting->city;
+            if (!empty($meeting->state)) {
+                $meeting->regions_formatted .= ', ' . $meeting->state;
             }
         } else {
-            $meeting->regions_formatted = implode(': ', $meeting->regions);
+            $meeting->regions_formatted = '';
         }
 
         //sort types for readability
+        $meeting->types = array_map('strtoupper', $meeting->types);
         sort($meeting->types);
 
         return $meeting;

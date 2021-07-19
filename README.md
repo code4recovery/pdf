@@ -7,23 +7,24 @@ This service accepts a [Meeting Guide-formatted JSON feed](https://github.com/co
 Example URL: `https://pdf.code4recovery.org/?json=https%3A%2F%2Faasanjose.org%2Fwp-admin%2Fadmin-ajax.php%3Faction%3Dmeetings&width=4.25&height=11&numbering=1&font=sans-serif`
 
 * `json` (required) encoded URL of a valid, publicly-accessible JSON feed
-* `width` page width, in inches. default is `4.25`
-* `height` page height, in inches. default is `11`
-* `start` number to start page numbering at, default is `1`
+* `width` page width, in inches, default is `4.25`
+* `height` page height, in inches, default is `11`
+* `numbering` number to start page numbers, default is `1`
 * `font` is `serif` or `sans-serif`, default is `serif`
+* `mode` is `stream` or `download`, default is `download`
 
 ## Assemble a PDF
 
-This is intended to provide the inside pages of a meeting book. To create the outer pages and merge it all into a single PDF:
+This service provides the inside pages of a meeting book. To create the outer pages and merge it all into a single PDF:
 
 1. Decide on a paper size. The default is 4.25 x 11, so that it can be printed on standard US Letter and stapled down the middle.
-1. Create a Google or Word doc at that paper size. [Here is an example Google doc](https://docs.google.com/document/d/1bmDg2j8cyalcqnw5GV1JJll7g8Av7uW6O6o4kVADwEc/edit?usp=sharing) at that size that you can copy. (Note that Google Docs doesn't support custom paper sizes, but you can try the [Page Sizer app](https://workspace.google.com/marketplace/app/page_sizer/595382898724) for Google Docs).
-1. Take note of how many pages your prepended document is. Now save it as a PDF (pro tip: just hit Command-P and it will save a PDF).
-1. Now generate your PDF. This will be easy once it's published to the web. Alternately for now you could clone this repo and run it locally. Set the paper size, of course, and the starting page number should be the number of pages you noted earlier, plus one.
+1. Create a Google or Word doc at that paper size. [Here is an example Google doc](https://docs.google.com/document/d/1bmDg2j8cyalcqnw5GV1JJll7g8Av7uW6O6o4kVADwEc/edit?usp=sharing) you can copy. (Note: Google Docs doesn't support custom paper sizes, but the [Page Sizer app](https://workspace.google.com/marketplace/app/page_sizer/595382898724) will enable that functionality).
+1. Take note of how many pages your prepended document is. Now download it as a PDF.
+1. Now generate your inside pages. Set the paper size and starting page number according to the results of the steps above.
 1. Open the downloaded PDF document locally. I used Preview (on Mac) for this. Then you can drag your "Meeting Directory Before" PDF to the start of this document, in the thumbnails area on the left side. (Note: I found that it works better if I add my Google Doc *to* my generated PDF, and not vice-versa).
 1. If you don't want to add content after the meetings, you're done! If you do then [here is an example doc](https://docs.google.com/document/d/1whm-ZL1JbZFinSRnbt4uKvFM6Hhv8e246TYtadsnVZQ/edit?usp=sharing) you can copy.
 1. Set the page numbers to start where they need to and save the PDF locally.
-1. Now drag it to the bottom of your thumbnails in Preview and hit save.
+1. Now drag it to the bottom of your thumbnails in Preview and hit save. Now you have a complete meeting schedule PDF.
 
 ## Booklet printing
 
