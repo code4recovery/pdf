@@ -22,6 +22,8 @@ Route::get('/', function (Request $request) {
     $height = floatval(request('height', 11)) * 72;
     $font = request('font') === 'sans-serif' ? 'Helvetica' : 'Georgia';
     $numbering = intval(request('numbering', 1));
+    $language = request('language', 'en');
+    $type = request('type', false);
     $stream = request('mode') === 'stream';
 
     //show home page if JSON isn't set
@@ -34,7 +36,73 @@ Route::get('/', function (Request $request) {
             'stream' => 'Stream (in-browser)',
             'download' => 'Download',
         ];
-        return view('home', compact('fonts', 'modes'));
+        $languages = [
+            'en' => 'English',
+            'es' => 'Español',
+            'fr' => 'Français',
+        ];
+        $types = [
+            '11' => '11th Step Meditation',
+            '12x12' => '12 Steps & 12 Traditions',
+            'ABSI' => 'As Bill Sees It',
+            'BA' => 'Babysitting Available',
+            'B' => 'Big Book',
+            'H' => 'Birthday',
+            'BRK' => 'Breakfast',
+            'CAN' => 'Candlelight',
+            'CF' => 'Child-Friendly',
+            'C' => 'Closed',
+            'AL-AN' => 'Concurrent with Al-Anon',
+            'AL' => 'Concurrent with Alateen',
+            'XT' => 'Cross Talk Permitted',
+            'DR' => 'Daily Reflections',
+            'DB' => 'Digital Basket',
+            'D' => 'Discussion',
+            'DD' => 'Dual Diagnosis',
+            'EN' => 'English',
+            'FF' => 'Fragrance Free',
+            'FR' => 'French',
+            'G' => 'Gay',
+            'GR' => 'Grapevine',
+            'HE' => 'Hebrew',
+            'NDG' => 'Indigenous',
+            'ITA' => 'Italian',
+            'JA' => 'Japanese',
+            'KOR' => 'Korean',
+            'L' => 'Lesbian',
+            'LIT' => 'Literature',
+            'LS' => 'Living Sober',
+            'LGBTQ' => 'LGBTQ',
+            'MED' => 'Meditation',
+            'M' => 'Men',
+            'N' => 'Native American',
+            'BE' => 'Newcomer',
+            //'NS'     => 'Non-Smoking', //here for the count
+            //'ONL'    => 'Online Meeting',
+            'O' => 'Open',
+            'OUT' => 'Outdoor Meeting',
+            'POC' => 'People of Color',
+            'POL' => 'Polish',
+            'POR' => 'Portuguese',
+            'P' => 'Professionals',
+            'PUN' => 'Punjabi',
+            'RUS' => 'Russian',
+            'A' => 'Secular',
+            'SEN' => 'Seniors',
+            'ASL' => 'Sign Language',
+            'SM' => 'Smoking Permitted',
+            'S' => 'Spanish',
+            'SP' => 'Speaker',
+            'ST' => 'Step Study',
+            'TR' => 'Tradition Study',
+            //'TC'    => 'Temporary Closure', //todo update to store codes
+            'T' => 'Transgender',
+            'X' => 'Wheelchair Access',
+            'XB' => 'Wheelchair-Accessible Bathroom',
+            'W' => 'Women',
+            'Y' => 'Young People',
+        ];
+        return view('home', compact('fonts', 'modes', 'languages', 'types'));
     }
 
     //fetch data
@@ -50,7 +118,7 @@ Route::get('/', function (Request $request) {
     }
 
     //process data
-    $days = processData($meetings);
+    $days = processData($meetings, $language, $type);
 
     //dd($meetings);
 
@@ -62,10 +130,26 @@ Route::get('/', function (Request $request) {
     return $pdf->download('directory.pdf');
 });
 
-function processData($meetings)
+function processData($meetings, $language, $type)
 {
     //need for parsing with carbon, using weekday integer doesn't work
-    $days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    $strings = [
+        'en' => [
+            'days' => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+            'noon' => 'Noon',
+            'midnight' => 'Midnight',
+        ],
+        'es' => [
+            'days' => ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+            'noon' => 'Mediodía',
+            'midnight' => 'Doce',
+        ],
+        'fr' => [
+            'days' => ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+            'noon' => 'Midi',
+            'midnight' => 'Minuit',
+        ],
+    ];
 
     //make a laravel collection, sort, & sanitize
     $meetings = collect($meetings)->map(function ($meeting, $key) {
@@ -74,9 +158,9 @@ function processData($meetings)
             $meeting->types = [];
         }
         return $meeting;
-    })->filter(function ($meeting, $key) use ($days) {
+    })->filter(function ($meeting, $key) use ($strings, $language, $type) {
         //validate day
-        if (!isset($meeting->day) || !array_key_exists($meeting->day, $days)) {
+        if (!isset($meeting->day) || !array_key_exists($meeting->day, $strings[$language]['days'])) {
             return false;
         }
 
@@ -90,21 +174,26 @@ function processData($meetings)
             return false;
         }
 
+        //filter
+        if ($type && !in_array($type, $meeting->types)) {
+            return false;
+        }
+
         //validate address
         if (empty($meeting->address) && (empty($meeting->formatted_address) || substr_count($meeting->formatted_address, ', ') !== 3)) {
             return false;
         }
 
         return true;
-    })->map(function ($meeting, $key) use ($days) {
+    })->map(function ($meeting, $key) use ($strings, $language, $type) {
         //make day weekday
-        $meeting->day_formatted = $days[$meeting->day];
+        $meeting->day_formatted = $strings[$language]['days'][$meeting->day];
 
         //make time carbon
         if ($meeting->time === '12:00') {
-            $meeting->time_formatted = 'Noon';
+            $meeting->time_formatted = $strings[$language]['noon'];
         } elseif ($meeting->time === '00:00' || $meeting->time === '23:59') {
-            $meeting->time_formatted = 'Midnight';
+            $meeting->time_formatted = $strings[$language]['midnight'];
         } elseif (substr($meeting->time, -3) === ':00') {
             $meeting->time_formatted = date('g a', strtotime($meeting->time));
         } else {
@@ -140,6 +229,12 @@ function processData($meetings)
 
         //sort types for readability
         $meeting->types = array_map('strtoupper', $meeting->types);
+        if ($type) {
+            $meeting->types = array_filter($meeting->types, function ($thistype) use ($type) {
+                return $thistype !== $type;
+            });
+        }
+
         sort($meeting->types);
 
         return $meeting;

@@ -34,7 +34,7 @@
                             </div>
                         </div>
                         @endif
-                        <div class="col-12 mb-3">
+                        <div class="col-md-8 mb-3">
                             <label for="json" class="form-label"
                                 >JSON Feed</label
                             >
@@ -51,6 +51,19 @@
                                 }}"
                                 required
                             />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Type</label>
+                            <select name="type" class="form-control">
+                                <option>All Types</option>
+                                @foreach ($types as $type => $label)
+                                <option value="{{ $type }}"
+                                @if ($type === old('type')) selected @endif
+                                >
+                                    {{ $label }}
+                                </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-sm-4 mb-3">
                             <label for="width" class="form-label">Width</label>
@@ -91,7 +104,24 @@
                                 value="{{ old('numbering', 1) }}"
                             />
                         </div>
-                        <div class="col-sm-6 mb-3">
+                        <div class="col-sm-4 mb-3">
+                            <label class="form-label">Language</label>
+                            @foreach ($languages as $language => $label)
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio"
+                                name="language" value="{{ $language }}"
+                                id="language-{{ $language }}" @if ($language ===
+                                old('language', 'en')) checked @endif />
+                                <label
+                                    class="form-check-label"
+                                    for="language-{{ $language }}"
+                                >
+                                    {{ $label }}
+                                </label>
+                            </div>
+                            @endforeach
+                        </div>
+                        <div class="col-sm-4 mb-3">
                             <label class="form-label">Font</label>
                             @foreach ($fonts as $font => $label)
                             <div class="form-check">
@@ -109,7 +139,7 @@
                             </div>
                             @endforeach
                         </div>
-                        <div class="col-sm-6 mb-3">
+                        <div class="col-sm-4 mb-3">
                             <label class="form-label">Mode</label>
                             @foreach ($modes as $mode => $label)
                             <div class="form-check">

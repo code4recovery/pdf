@@ -41,7 +41,7 @@
                 page-break-inside: avoid;
                 position: relative;
             }
-            .meeting .meeting-time, .meeting .meeting-codes {
+            .meeting .meeting-time, .meeting .meeting-types {
                 position: absolute;
                 top: 0;
                 width: 65px;
@@ -51,8 +51,9 @@
             .meeting .meeting-time {
                 left: 0;
             }
-            .meeting .meeting-codes {
+            .meeting .meeting-types {
                 right: 0;
+                text-align: right;
             }
             .meeting .meeting-name {
                 font-weight: bold;
@@ -99,7 +100,7 @@
                                 {{ $meeting->address }}
                             </div>
                         </div>
-                        <div class="meeting-codes">
+                        <div class="meeting-types">
                             {{ implode(', ', $meeting->types) }}
                         </div>
                     </div>
