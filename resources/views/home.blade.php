@@ -14,7 +14,7 @@
     <body>
         <div class="container py-5">
             <div class="row">
-                <form method="get" action="/" class="col-lg-8 offset-lg-2">
+                <form method="get" action="/pdf" class="col-lg-8 offset-lg-2">
                     <div class="row">
                         <div class="col-12 mb-3">
                             <h1>📄 PDF Generator</h1>
@@ -43,19 +43,14 @@
                                 name="json"
                                 id="json"
                                 type="url"
-                                value="{{
-                                    old(
-                                        'json',
-                                        'https://demo.code4recovery.org/wp-admin/admin-ajax.php?action=meetings'
-                                    )
-                                }}"
+                                value="{{ old('json', $json) }}"
                                 required
                             />
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Type</label>
                             <select name="type" class="form-control">
-                                <option>All Types</option>
+                                <option value="">All Types</option>
                                 @foreach ($types as $type => $label)
                                 <option value="{{ $type }}"
                                 @if ($type === old('type')) selected @endif
