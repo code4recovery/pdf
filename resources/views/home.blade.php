@@ -14,8 +14,12 @@
             This service creates inside pages for a printed meeting schedule
             from a Meeting Guide JSON feed. For more info, or to contribute,
             check out the
-            <a href="https://github.com/code4recovery/pdf"
-                >project page on Github</a
+            <a
+                href="https://github.com/code4recovery/pdf"
+                class="text-blue-600 underline"
+                target="_blank"
+            >
+                project page on Github</a
             >.
         </p>
         @if (session('error'))
