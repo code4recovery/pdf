@@ -6,9 +6,19 @@
         <link href="{{ mix('css/app.css') }}" rel="stylesheet" />
         <title>PDF Generator</title>
     </head>
-    <body class="bg-gray-50 py-7">
+    <body
+        class="
+            flex
+            bg-gradient-to-br
+            from-gray-50
+            via-gray-100
+            to-gray-50
+            py-7
+            min-h-screen
+        "
+    >
         {!! Form::open([ 'url' => 'pdf', 'method' => 'get', 'class' =>
-        'container mx-auto px-4 max-w-4xl' ]) !!}
+        'container mx-auto px-4 max-w-4xl self-center' ]) !!}
         <h1 class="text-4xl font-bold mb-4">📄 PDF Generator</h1>
         <p class="mb-4 text-lg">
             This service creates inside pages for a printed meeting schedule
