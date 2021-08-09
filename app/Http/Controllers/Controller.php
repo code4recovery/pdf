@@ -195,7 +195,11 @@ class Controller extends BaseController
                 $meeting->address = $address;
             }
 
-            if ($meeting->location === $meeting->address || (!empty($meeting->formatted_address) && $meeting->location === $meeting->formatted_address)) {
+            if (
+                empty($meeting->location) ||
+                $meeting->location === $meeting->address ||
+                (!empty($meeting->formatted_address) && $meeting->location === $meeting->formatted_address)
+            ) {
                 $meeting->location = null;
             }
 
