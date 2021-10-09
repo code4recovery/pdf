@@ -5,9 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Support\Facades\Http;
 use PDF;
+use Exception;
 
 class Controller extends BaseController
 {
@@ -39,6 +40,7 @@ class Controller extends BaseController
             'BA' => 'Babysitting Available',
             'B' => 'Big Book',
             'H' => 'Birthday',
+            'BI' => 'Bisexual',
             'BRK' => 'Breakfast',
             'CAN' => 'Candlelight',
             'CF' => 'Child-Friendly',
@@ -110,15 +112,38 @@ class Controller extends BaseController
         $stream = request('mode') === 'stream';
 
         //fetch data
-        $data = @file_get_contents($json);
-        if (!$data) {
-            return back()->with('error', 'Could not fetch data. Please check the address.')->withInput();
+        try {
+            $response = Http::get($json);
+        } catch (Exception $e) {
+            $error = 'Could not fetch data. Please check the address. Received the following message: ' . $e->getMessage();
+            return back()->with('error', $error)->withInput();
+        }
+
+        //handle fetch error
+        if ($response->failed()) {
+            $error = 'Could not fetch data. Please check the JSON feed address.';
+            switch ($response->status()) {
+                case 401:
+                    $error = 'Data is protected. If you are using 12 Step Meeting List, consider setting data sharing to open.';
+                    break;
+                case 403:
+                    $error = 'Got a forbidden (403) error. Please check the JSON feed address.';
+                    break;
+                case 404:
+                    $error = 'Received a page not found (404) error. Please check the JSON feed address.';
+                    break;
+                case 500:
+                    $error = 'Received an internal server (500) error. Please check the JSON feed address.';
+                    break;
+            }
+            return back()->with('error', $error)->withInput();
         }
 
         //parse JSON
-        $meetings = @json_decode($data);
+        $meetings = $response->json();
+
         if (!is_array($meetings)) {
-            return back()->with('error', 'Could not parse JSON data. Response was ' . substr(trim($data), 0, 100) . '…')->withInput();
+            return back()->with('error', 'Could not parse JSON data. Response was ' . substr(trim($response->body()), 0, 100) . '…')->withInput();
         }
 
         //process data
@@ -141,13 +166,16 @@ class Controller extends BaseController
         ];
 
         //make a laravel collection, sort, & sanitize
-        $days = collect($meetings)->map(function ($meeting, $key) {
+        $days = collect($meetings)->map(function ($meeting) {
+            //convert to object
+            $meeting = (object) $meeting;
+
             //make sure types is an array
             if (!isset($meeting->types) || !is_array($meeting->types)) {
                 $meeting->types = [];
             }
             return $meeting;
-        })->filter(function ($meeting, $key) use ($strings, $language, $type) {
+        })->filter(function ($meeting) use ($strings, $language, $type) {
             //validate day
             if (!isset($meeting->day) || !array_key_exists($meeting->day, $strings[$language]['days'])) {
                 return false;
