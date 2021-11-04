@@ -98,31 +98,35 @@
         <div class="page-number"></div>
     </footer>
     <main>
-        @foreach ($days as $day => $meetings)
+        @foreach ($days as $day => $regions)
             <div class="day">
                 <h1>{{ $day }}</h1>
-                @foreach ($meetings as $meeting)
-                    <div class="meeting">
-                        <div class="meeting-time">
-                            {{ $meeting->time_formatted }}
-                        </div>
-                        <div>
-                            <div class="meeting-name">
-                                {{ $meeting->name }}
+                @foreach ($regions as $region => $meetings)
+                    <div class="region">
+                        @if ($region)
+                            <h3>{{ $region }}</h3>
+                        @endif
+                        @foreach ($meetings as $meeting)
+                            <div class="meeting">
+                                <div class="meeting-time">
+                                    {{ $meeting->time_formatted }}
+                                </div>
+                                <div>
+                                    <div class="meeting-name">
+                                        {{ $meeting->name }}
+                                    </div>
+                                    <div>
+                                        {{ $meeting->location }}
+                                    </div>
+                                    <div>
+                                        {{ $meeting->address }}
+                                    </div>
+                                </div>
+                                <div class="meeting-types">
+                                    {{ implode(', ', $meeting->types) }}
+                                </div>
                             </div>
-                            <div>
-                                {{ $meeting->location }}
-                            </div>
-                            <div>
-                                {{ $meeting->address }}
-                            </div>
-                            <div>
-                                {{ $meeting->regions_formatted }}
-                            </div>
-                        </div>
-                        <div class="meeting-types">
-                            {{ implode(', ', $meeting->types) }}
-                        </div>
+                        @endforeach
                     </div>
                 @endforeach
             </div>
