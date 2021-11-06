@@ -15,14 +15,75 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
+    private static $types = [
+        '11' => '11th Step Meditation',
+        '12x12' => '12 Steps & 12 Traditions',
+        'ABSI' => 'As Bill Sees It',
+        'BA' => 'Babysitting Available',
+        'B' => 'Big Book',
+        'H' => 'Birthday',
+        'BI' => 'Bisexual',
+        'BRK' => 'Breakfast',
+        'CAN' => 'Candlelight',
+        'CF' => 'Child-Friendly',
+        'C' => 'Closed',
+        'AL-AN' => 'Concurrent with Al-Anon',
+        'AL' => 'Concurrent with Alateen',
+        'XT' => 'Cross Talk Permitted',
+        'DR' => 'Daily Reflections',
+        'DB' => 'Digital Basket',
+        'D' => 'Discussion',
+        'DD' => 'Dual Diagnosis',
+        'EN' => 'English',
+        'FF' => 'Fragrance Free',
+        'FR' => 'French',
+        'G' => 'Gay',
+        'GR' => 'Grapevine',
+        'HE' => 'Hebrew',
+        'NDG' => 'Indigenous',
+        'ITA' => 'Italian',
+        'JA' => 'Japanese',
+        'KOR' => 'Korean',
+        'L' => 'Lesbian',
+        'LIT' => 'Literature',
+        'LS' => 'Living Sober',
+        'LGBTQ' => 'LGBTQ',
+        'MED' => 'Meditation',
+        'M' => 'Men',
+        'N' => 'Native American',
+        'BE' => 'Newcomer',
+        'O' => 'Open',
+        'OUT' => 'Outdoor Meeting',
+        'POC' => 'People of Color',
+        'POL' => 'Polish',
+        'POR' => 'Portuguese',
+        'P' => 'Professionals',
+        'PUN' => 'Punjabi',
+        'RUS' => 'Russian',
+        'A' => 'Secular',
+        'SEN' => 'Seniors',
+        'ASL' => 'Sign Language',
+        'SM' => 'Smoking Permitted',
+        'S' => 'Spanish',
+        'SP' => 'Speaker',
+        'ST' => 'Step Study',
+        'TR' => 'Tradition Study',
+        'T' => 'Transgender',
+        'X' => 'Wheelchair Access',
+        'XB' => 'Wheelchair-Accessible Bathroom',
+        'W' => 'Women',
+        'Y' => 'Young People',
+    ];
+
+
     public function home()
     {
 
         //parse input
         $json = request(
             'json',
-            //'https://demo.code4recovery.org/wp-admin/admin-ajax.php?action=meetings'
-            'https://docs.google.com/spreadsheets/d/12Ga8uwMG4WJ8pZ_SEU7vNETp_aQZ-2yNVsYDFqIwHyE/edit#gid=0'
+            'https://demo.code4recovery.org/wp-admin/admin-ajax.php?action=meetings'
+            //'https://docs.google.com/spreadsheets/d/12Ga8uwMG4WJ8pZ_SEU7vNETp_aQZ-2yNVsYDFqIwHyE/edit#gid=0'
         );
 
         $fonts = [
@@ -42,68 +103,7 @@ class Controller extends BaseController
             'day-region' => 'Day, Region',
             'day' => 'Day',
         ];
-        $types = [
-            '11' => '11th Step Meditation',
-            '12x12' => '12 Steps & 12 Traditions',
-            'ABSI' => 'As Bill Sees It',
-            'BA' => 'Babysitting Available',
-            'B' => 'Big Book',
-            'H' => 'Birthday',
-            'BI' => 'Bisexual',
-            'BRK' => 'Breakfast',
-            'CAN' => 'Candlelight',
-            'CF' => 'Child-Friendly',
-            'C' => 'Closed',
-            'AL-AN' => 'Concurrent with Al-Anon',
-            'AL' => 'Concurrent with Alateen',
-            'XT' => 'Cross Talk Permitted',
-            'DR' => 'Daily Reflections',
-            'DB' => 'Digital Basket',
-            'D' => 'Discussion',
-            'DD' => 'Dual Diagnosis',
-            'EN' => 'English',
-            'FF' => 'Fragrance Free',
-            'FR' => 'French',
-            'G' => 'Gay',
-            'GR' => 'Grapevine',
-            'HE' => 'Hebrew',
-            'NDG' => 'Indigenous',
-            'ITA' => 'Italian',
-            'JA' => 'Japanese',
-            'KOR' => 'Korean',
-            'L' => 'Lesbian',
-            'LIT' => 'Literature',
-            'LS' => 'Living Sober',
-            'LGBTQ' => 'LGBTQ',
-            'MED' => 'Meditation',
-            'M' => 'Men',
-            'N' => 'Native American',
-            'BE' => 'Newcomer',
-            //'NS'     => 'Non-Smoking', //here for the count
-            //'ONL'    => 'Online Meeting',
-            'O' => 'Open',
-            'OUT' => 'Outdoor Meeting',
-            'POC' => 'People of Color',
-            'POL' => 'Polish',
-            'POR' => 'Portuguese',
-            'P' => 'Professionals',
-            'PUN' => 'Punjabi',
-            'RUS' => 'Russian',
-            'A' => 'Secular',
-            'SEN' => 'Seniors',
-            'ASL' => 'Sign Language',
-            'SM' => 'Smoking Permitted',
-            'S' => 'Spanish',
-            'SP' => 'Speaker',
-            'ST' => 'Step Study',
-            'TR' => 'Tradition Study',
-            //'TC'    => 'Temporary Closure', //todo update to store codes
-            'T' => 'Transgender',
-            'X' => 'Wheelchair Access',
-            'XB' => 'Wheelchair-Accessible Bathroom',
-            'W' => 'Women',
-            'Y' => 'Young People',
-        ];
+        $types = self::$types;
 
         return view('home', compact('fonts', 'modes', 'languages', 'types', 'group_by', 'json'));
     }
@@ -121,6 +121,25 @@ class Controller extends BaseController
         $type = request('type', false);
         $stream = request('mode') === 'stream';
         $group_by_region = request('group_by', 'day-region') === 'day-region';
+
+        //process data
+        $strings = [
+            'en' => [
+                'days' => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                'noon' => 'Noon',
+                'midnight' => 'Midnight',
+            ],
+            'es' => [
+                'days' => ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+                'noon' => 'Mediodía',
+                'midnight' => 'Doce',
+            ],
+            'fr' => [
+                'days' => ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+                'noon' => 'Midi',
+                'midnight' => 'Minuit',
+            ],
+        ];
 
         //is it google sheet?
         $googleSheet = Str::startsWith($json, 'https://docs.google.com/spreadsheets/d/');
@@ -170,35 +189,48 @@ class Controller extends BaseController
                 return back()->with('error', 'Could not get Google Sheet values. Response was ' . substr(trim($response->body()), 0, 100) . '…')->withInput();
             }
 
-            $headers = array_shift($meetings['values']);
             $headers = array_map(function ($header) {
                 return Str::slug($header, '_');
-            }, $headers);
+            }, array_shift($meetings['values']));
 
-            dd($headers);
-            dd($meetings['values']);
+            $header_count = count($headers);
+
+            $type_lookup = array_flip(array_map('strtolower', self::$types));
+
+            $meetings = array_map(function ($row) use ($headers, $header_count, $strings, $type_lookup) {
+                $row_count = count($row);
+                if ($row_count > $header_count) {
+                    $row = array_slice($row, 0, $header_count);
+                } elseif ($row_count < $header_count) {
+                    $row = array_pad($row, $header_count, '');
+                }
+                $meeting = array_combine($headers, $row);
+
+                if (in_array($meeting['day'], $strings['en']['days'])) {
+                    $meeting['day'] = array_search($meeting['day'], $strings['en']['days']);
+                }
+
+                //format time
+                $meeting['time'] = date('H:i', strtotime($meeting['time']));
+
+                //arrayify types
+                $meeting['types'] = array_map('strtolower', array_map('trim', explode(',', $meeting['types'])));
+
+                //filter out custom types
+                $meeting['types'] = array_filter($meeting['types'], function ($type) use ($type_lookup) {
+                    return array_key_exists($type, $type_lookup);
+                });
+
+                //convert types to codes
+                $meeting['types'] = array_map(function ($type) use ($type_lookup) {
+                    return $type_lookup[$type];
+                }, $meeting['types']);
+
+                return $meeting;
+            }, $meetings['values']);
         } elseif (!is_array($meetings)) {
             return back()->with('error', 'Could not parse JSON data. Response was ' . substr(trim($response->body()), 0, 100) . '…')->withInput();
         }
-
-        //process data
-        $strings = [
-            'en' => [
-                'days' => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-                'noon' => 'Noon',
-                'midnight' => 'Midnight',
-            ],
-            'es' => [
-                'days' => ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
-                'noon' => 'Mediodía',
-                'midnight' => 'Doce',
-            ],
-            'fr' => [
-                'days' => ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
-                'noon' => 'Midi',
-                'midnight' => 'Minuit',
-            ],
-        ];
 
         //make a laravel collection, sort, & sanitize
         $days = collect($meetings)->map(function ($meeting) {
