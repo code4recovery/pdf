@@ -26,7 +26,7 @@ class Controller extends BaseController
         ];
         $modes = [
             'download' => 'Download',
-            'stream' => 'Stream (in-browser)',
+            'stream' => 'Stream',
         ];
         $languages = [
             'en' => 'English',
@@ -34,7 +34,7 @@ class Controller extends BaseController
             'fr' => 'Français',
         ];
         $group_by = [
-            'day-region' => 'Day, then Region',
+            'day-region' => 'Day, Region',
             'day' => 'Day',
         ];
         $types = [
