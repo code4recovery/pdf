@@ -21,7 +21,7 @@
         <h1>PDF Generator</h1>
         <p class="lead">
             This service creates inside pages for a printed meeting schedule
-            from a Meeting Guide JSON feed.
+            from a Meeting Guide JSON feed or Google Sheet.
         </p>
         @if (session('error'))
             <p class="alert alert-danger">
@@ -31,7 +31,7 @@
         <div class="row">
             <div class="col-12 mb-4">
                 <label class="form-label fw-bold" for="json">
-                    JSON Feed
+                    Feed or Sheet URL
                 </label>
                 {!! Form::url('json', old('json', $json), [
     'class' => 'form-control',

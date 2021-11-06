@@ -8,6 +8,7 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Http;
 use PDF;
+use Str;
 use Exception;
 
 class Controller extends BaseController
@@ -18,7 +19,11 @@ class Controller extends BaseController
     {
 
         //parse input
-        $json = request('json', 'https://demo.code4recovery.org/wp-admin/admin-ajax.php?action=meetings');
+        $json = request(
+            'json',
+            //'https://demo.code4recovery.org/wp-admin/admin-ajax.php?action=meetings'
+            'https://docs.google.com/spreadsheets/d/12Ga8uwMG4WJ8pZ_SEU7vNETp_aQZ-2yNVsYDFqIwHyE/edit#gid=0'
+        );
 
         $fonts = [
             'sans-serif' => 'Sans Serif',
@@ -117,9 +122,16 @@ class Controller extends BaseController
         $stream = request('mode') === 'stream';
         $group_by_region = request('group_by', 'day-region') === 'day-region';
 
+        //is it google sheet?
+        $googleSheet = Str::startsWith($json, 'https://docs.google.com/spreadsheets/d/');
+
+        $useJson = $googleSheet
+            ? 'https://sheets.googleapis.com/v4/spreadsheets/' . explode('/', $json)[5] . '/values/A1:ZZ?key=' . getenv('GOOGLE_API_KEY')
+            : $json;
+
         //fetch data
         try {
-            $response = Http::get($json);
+            $response = Http::get($useJson);
         } catch (Exception $e) {
             $error = 'Could not fetch data. Please check the address. Received the following message: ' . $e->getMessage();
             return back()->with('error', $error)->withInput();
@@ -127,20 +139,25 @@ class Controller extends BaseController
 
         //handle fetch error
         if ($response->failed()) {
-            $error = 'Could not fetch data. Please check the JSON feed address.';
-            switch ($response->status()) {
-                case 401:
-                    $error = 'Data is protected. If you are using 12 Step Meeting List, consider setting data sharing to open.';
-                    break;
-                case 403:
-                    $error = 'Got a forbidden (403) error. Please check the JSON feed address.';
-                    break;
-                case 404:
-                    $error = 'Received a page not found (404) error. Please check the JSON feed address.';
-                    break;
-                case 500:
-                    $error = 'Received an internal server (500) error. Please check the JSON feed address.';
-                    break;
+            if ($googleSheet) {
+                $error = 'Could not fetch data. Please check that the Google Sheet sharing settings enable anyone with the link to view.';
+                //dd($response);
+            } else {
+                $error = 'Could not fetch data. Please check the JSON feed address.';
+                switch ($response->status()) {
+                    case 401:
+                        $error = 'Data is protected. If you are using 12 Step Meeting List, consider setting data sharing to open.';
+                        break;
+                    case 403:
+                        $error = 'Got a forbidden (403) error. Please check the JSON feed address.';
+                        break;
+                    case 404:
+                        $error = 'Received a page not found (404) error. Please check the JSON feed address.';
+                        break;
+                    case 500:
+                        $error = 'Received an internal server (500) error. Please check the JSON feed address.';
+                        break;
+                }
             }
             return back()->with('error', $error)->withInput();
         }
@@ -148,7 +165,19 @@ class Controller extends BaseController
         //parse JSON
         $meetings = $response->json();
 
-        if (!is_array($meetings)) {
+        if ($googleSheet) {
+            if (empty($meetings['values'])) {
+                return back()->with('error', 'Could not get Google Sheet values. Response was ' . substr(trim($response->body()), 0, 100) . '…')->withInput();
+            }
+
+            $headers = array_shift($meetings['values']);
+            $headers = array_map(function ($header) {
+                return Str::slug($header, '_');
+            }, $headers);
+
+            dd($headers);
+            dd($meetings['values']);
+        } elseif (!is_array($meetings)) {
             return back()->with('error', 'Could not parse JSON data. Response was ' . substr(trim($response->body()), 0, 100) . '…')->withInput();
         }
 
