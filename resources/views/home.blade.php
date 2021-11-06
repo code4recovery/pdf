@@ -1,129 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link href="{{ mix('css/app.css') }}" rel="stylesheet" />
-        <title>PDF Generator</title>
-    </head>
-    <body
-        class="
-            flex
-            bg-gradient-to-br
-            from-gray-50
-            via-gray-100
-            to-gray-50
-            py-7
-            min-h-screen
-        "
-    >
-        {!! Form::open([ 'url' => 'pdf', 'method' => 'get', 'class' =>
-        'container mx-auto px-4 max-w-4xl self-center' ]) !!}
-        <h1 class="text-4xl font-bold mb-4">📄 PDF Generator</h1>
-        <p class="mb-4 text-lg">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous" />
+    <title>PDF Generator</title>
+    <style>
+        .container-md {
+            max-width: 720px;
+        }
+
+    </style>
+</head>
+
+<body class="bg-light">
+    <div class="container-md my-5">
+        {!! Form::open(['url' => 'pdf', 'method' => 'get']) !!}
+        <h1>PDF Generator</h1>
+        <p class="lead">
             This service creates inside pages for a printed meeting schedule
-            from a Meeting Guide JSON feed. For more info, or to contribute,
-            check out the
-            <a
-                href="https://github.com/code4recovery/pdf"
-                class="text-blue-600 underline"
-                target="_blank"
-            >
-                project page on Github</a
-            >.
+            from a Meeting Guide JSON feed.
         </p>
         @if (session('error'))
-        <p
-            class="
-                bg-red-100
-                border border-red-200
-                mb-4
-                px-4
-                py-3
-                rounded-md
-                text-red-900
-            "
-        >
-            {{ session("error") }}
-        </p>
+            <p class="alert alert-danger">
+                {{ session('error') }}
+            </p>
         @endif
-        <div class="grid md:grid-cols-3 gap-4">
-            <div class="md:col-span-2 mb-3">
-                <label class="font-bold block mb-1" for="json">
+        <div class="row">
+            <div class="col-12 mb-4">
+                <label class="form-label fw-bold" for="json">
                     JSON Feed
                 </label>
-                {!! Form::url('json', old('json', $json), [ 'class'=>'rounded-md
-                w-full', 'id' => 'json', 'required' => true ] ) !!}
+                {!! Form::url('json', old('json', $json), [
+    'class' => 'form-control',
+    'id' => 'json',
+    'required' => true,
+]) !!}
             </div>
-            <div class="mb-3">
-                <label class="font-bold block mb-1" for="type">Type</label>
-                {!! Form::select('type', ['' => 'Any Type'] + $types,
-                old('type', ''), ['class' => 'rounded-md w-full']) !!}
-            </div>
-            <div class="mb-3">
-                <label for="width" class="font-bold block mb-1"> Width </label>
+            <div class="col-md-6 mb-4">
+                <label for="width" class="form-label fw-bold">Width</label>
                 {!! Form::number('width', old('width', 4.25), [
-                'class'=>'rounded-md w-full', 'id' => 'width', 'required' =>
-                true, 'step' => '0.01' ] ) !!}
+    'class' => 'form-control',
+    'id' => 'width',
+    'required' => true,
+    'step' => '0.01',
+]) !!}
             </div>
-            <div class="mb-3">
-                <label for="height" class="font-bold block mb-1">
+            <div class="col-md-6 mb-4">
+                <label for="height" class="form-label fw-bold">
                     Height
                 </label>
                 {!! Form::number('height', old('height', 11), [
-                'class'=>'rounded-md w-full', 'id' => 'height', 'required' =>
-                true, 'step' => '0.01' ] ) !!}
+    'class' => 'form-control',
+    'id' => 'height',
+    'required' => true,
+    'step' => '0.01',
+]) !!}
             </div>
-            <div class="mb-3">
-                <label for="numbering" class="font-bold block mb-1">
+            <div class="col-md-6 mb-4">
+                <label for="numbering" class="form-label fw-bold">
                     Start #
                 </label>
                 {!! Form::number('numbering', old('numbering', 1), [
-                'class'=>'rounded-md w-full', 'id' => 'numbering', 'required' =>
-                true] ) !!}
+    'class' => 'form-control',
+    'id' => 'numbering',
+    'required' => true,
+]) !!}
             </div>
-            <div class="grid gap-1 content-start mb-3">
-                <label class="font-bold block">Language</label>
+            <div class="col-md-6 mb-4">
+                <label class="form-label fw-bold" for="type">Type</label>
+                {!! Form::select('type', ['' => 'Any Type'] + $types, old('type', ''), ['id' => 'type', 'class' => 'form-control']) !!}
+            </div>
+            <div class="col-md-6 mb-4">
+                <label class="form-label fw-bold">Language</label>
                 @foreach ($languages as $language => $label)
-                <div class="flex items-center gap-2">
-                    {!! Form::radio('language', $language, ($language ===
-                    old('language', 'en')), ['id' => 'language-' . $language])
-                    !!}
-                    <label for="language-{{ $language }}">
-                        {{ $label }}
-                    </label>
-                </div>
+                    <div class="form-check">
+                        {!! Form::radio('language', $language, $language === old('language', 'en'), ['id' => 'language-' . $language, 'class' => 'form-check-input']) !!}
+                        <label class="form-check-label" for="language-{{ $language }}">
+                            {{ $label }}
+                        </label>
+                    </div>
                 @endforeach
             </div>
-            <div class="grid gap-1 content-start mb-3">
-                <label class="font-bold block">Font</label>
+            <div class="col-md-6 mb-4">
+                <label class="form-label fw-bold">Font</label>
                 @foreach ($fonts as $font => $label)
-                <div class="flex items-center gap-2">
-                    {!! Form::radio('font', $font, ($font === old('font',
-                    'sans-serif')), ['id' => 'font-' . $font]) !!}
-                    <label for="font-{{ $font }}">
-                        {{ $label }}
-                    </label>
-                </div>
+                    <div class="form-check">
+                        {!! Form::radio('font', $font, $font === old('font', 'sans-serif'), ['id' => 'font-' . $font, 'class' => 'form-check-input']) !!}
+                        <label class="form-check-label" for="font-{{ $font }}">
+                            {{ $label }}
+                        </label>
+                    </div>
                 @endforeach
             </div>
-            <div class="grid gap-1 content-start mb-3">
-                <label class="font-bold block">Mode</label>
+            <div class="col-md-6 mb-4">
+                <label class="form-label fw-bold">Group by</label>
+                @foreach ($group_by as $group => $label)
+                    <div class="form-check-label" class="form-check">
+                        {!! Form::radio('group_by', $group, $group === old('group_by', 'day-region'), ['id' => 'group_by-' . $group, 'class' => 'form-check-input']) !!}
+                        <label for="group_by-{{ $group }}">
+                            {{ $label }}
+                        </label>
+                    </div>
+                @endforeach
+            </div>
+            <div class="col-md-6 mb-4">
+                <label class="form-label fw-bold">Mode</label>
                 @foreach ($modes as $mode => $label)
-                <div class="flex items-center gap-2">
-                    {!! Form::radio('mode', $mode, ($mode === old('mode',
-                    'download')), ['id' => 'mode-' . $mode]) !!}
-                    <label for="mode-{{ $mode }}">
-                        {{ $label }}
-                    </label>
-                </div>
+                    <div class="form-check">
+                        {!! Form::radio('mode', $mode, $mode === old('mode', 'download'), ['id' => 'mode-' . $mode, 'class' => 'form-check-input']) !!}
+                        <label class="form-check-label" for="mode-{{ $mode }}">
+                            {{ $label }}
+                        </label>
+                    </div>
                 @endforeach
             </div>
-            <div class="col-span-full text-center">
-                {!! Form::submit('⚡️ Generate ⚡️', ['class' => 'bg-blue-600
-                cursor-pointer px-5 py-3 rounded-md text-white text-xl']) !!}
+            <div class="col-12 text-center my-4">
+                {!! Form::submit('Generate', [
+    'class' => 'btn btn-primary btn-lg px-4',
+]) !!}
             </div>
         </div>
         {!! Form::close() !!}
-    </body>
+        <p class="mb-4 mt-5">
+            More information is available on the
+            <a href="https://github.com/code4recovery/pdf" target="_blank">
+                project page on Github</a>. To get help, please
+            <a href="https://github.com/code4recovery/pdf/issues/new" target="_blank">file an issue</a>.
+        </p>
+        <p class="text-center">
+            <a href="https://code4recovery.org" target="_blank">
+                <img src="/logo.svg" width="100" height="100" alt="Code for Recovery" />
+            </a>
+        </p>
+    </div>
+</body>
+
 </html>

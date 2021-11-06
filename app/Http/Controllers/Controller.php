@@ -26,12 +26,16 @@ class Controller extends BaseController
         ];
         $modes = [
             'download' => 'Download',
-            'stream' => 'Stream (in-browser)',
+            'stream' => 'Stream',
         ];
         $languages = [
             'en' => 'English',
             'es' => 'Español',
             'fr' => 'Français',
+        ];
+        $group_by = [
+            'day-region' => 'Day, Region',
+            'day' => 'Day',
         ];
         $types = [
             '11' => '11th Step Meditation',
@@ -95,7 +99,8 @@ class Controller extends BaseController
             'W' => 'Women',
             'Y' => 'Young People',
         ];
-        return view('home', compact('fonts', 'modes', 'languages', 'types', 'json'));
+
+        return view('home', compact('fonts', 'modes', 'languages', 'types', 'group_by', 'json'));
     }
 
     public function pdf()
@@ -110,6 +115,7 @@ class Controller extends BaseController
         $language = request('language', 'en');
         $type = request('type', false);
         $stream = request('mode') === 'stream';
+        $group_by_region = request('group_by', 'day-region') === 'day-region';
 
         //fetch data
         try {
@@ -259,25 +265,31 @@ class Controller extends BaseController
             sort($meeting->types);
 
             return $meeting;
-        })->sort(function ($a, $b) {
+        })->sort(function ($a, $b) use ($group_by_region) {
 
             //sort meetings by day…
             if ($a->day !== $b->day) {
                 return $a->day < $b->day ? -1 : 1;
             }
 
-            if ($a->regions_formatted !== $b->regions_formatted) {
+            if ($group_by_region && $a->regions_formatted !== $b->regions_formatted) {
                 return strcmp($a->regions_formatted, $b->regions_formatted);
             }
 
             //…then time
             return strcmp($a->time, $b->time);
-        })->groupBy('day_formatted')->transform(function ($meetings) {
-            return $meetings->groupBy('regions_formatted');
-        });
+        })->groupBy('day_formatted');
+
+        if ($group_by_region) {
+            $days = $days->transform(function ($meetings) {
+                return $meetings->groupBy('regions_formatted');
+            });
+        }
+
+        $view = $group_by_region ? 'pdf-region' : 'pdf';
 
         //output PDF
-        $pdf = PDF::loadView('pdf', compact('days', 'font', 'numbering'))->setPaper([0, 0, $width, $height]);
+        $pdf = PDF::loadView($view, compact('days', 'font', 'numbering'))->setPaper([0, 0, $width, $height]);
 
         return ($stream) ? $pdf->stream() : $pdf->download('directory.pdf');
     }
