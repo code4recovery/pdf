@@ -7,8 +7,8 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Http;
-use PDF;
-use Str;
+use Barryvdh\DomPDF\Facade as PDF;
+use Illuminate\Support\Str;
 use Exception;
 
 class Controller extends BaseController
@@ -261,6 +261,11 @@ class Controller extends BaseController
             //filter
             if ($type && !in_array($type, $meeting->types)) {
                 return false;
+            }
+
+            //full address alias
+            if (!empty($meeting->full_address) && empty($meeting->formatted_address)) {
+                $meeting->formatted_address = $meeting->full_address;
             }
 
             //validate address
