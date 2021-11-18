@@ -35,8 +35,28 @@
             text-transform: uppercase;
         }
 
-        .day {
+        .day,
+        .legend {
             page-break-after: always;
+        }
+
+        .legend>div {
+            font-size: 9px;
+            border-bottom: .5px solid #ddd;
+            padding-bottom: 1.5px;
+            padding-top: 6px;
+        }
+
+        .legend>div:last-child {
+            border-bottom: none;
+        }
+
+        .legend>div span {
+            display: inline-block;
+        }
+
+        .legend>div .type {
+            width: 40px;
         }
 
         .day:last-child {
@@ -95,6 +115,7 @@
 <body>
     <footer></footer>
     <main>
+        @include('legend', compact('types_in_use', 'types'))
         @if ($group_by_region)
             @foreach ($days as $day => $regions)
                 <div class="day">
@@ -121,6 +142,7 @@
                 </div>
             @endforeach
         @endif
+        @include('legend', compact('types_in_use', 'types'))
     </main>
 </body>
 

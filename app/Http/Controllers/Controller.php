@@ -121,6 +121,7 @@ class Controller extends BaseController
         $type = request('type', false);
         $stream = request('mode') === 'stream';
         $group_by_region = request('group_by', 'day-region') === 'day-region';
+        $types = self::$types;
 
         //process data
         $strings = [
@@ -233,7 +234,7 @@ class Controller extends BaseController
         }
 
         //make a laravel collection, sort, & sanitize
-        $days = collect($meetings)->map(function ($meeting) {
+        $meetings = collect($meetings)->map(function ($meeting) {
             //convert to object
             $meeting = (object) $meeting;
 
@@ -274,7 +275,7 @@ class Controller extends BaseController
             }
 
             return true;
-        })->map(function ($meeting, $key) use ($strings, $language, $type) {
+        })->map(function ($meeting, $key) use ($strings, $language, $type, $types) {
             //make day weekday
             $meeting->day_formatted = $strings[$language]['days'][$meeting->day];
 
@@ -321,7 +322,10 @@ class Controller extends BaseController
             }
 
             //sort types for readability
-            $meeting->types = array_map('strtoupper', $meeting->types);
+            $meeting->types = array_filter(array_map('strtoupper', $meeting->types), function ($type) use ($types) {
+                return array_key_exists($type, $types);
+            });
+
             if ($type) {
                 $meeting->types = array_filter($meeting->types, function ($thistype) use ($type) {
                     return $thistype !== $type;
@@ -344,7 +348,15 @@ class Controller extends BaseController
 
             //…then time
             return strcmp($a->time, $b->time);
-        })->groupBy('day_formatted');
+        });
+
+        $types_in_use = array_unique($meetings->pluck('types')->reduce(function ($carry, $item) {
+            return is_array($item) ? array_merge($carry, $item) : $carry;
+        }, []));
+
+        sort($types_in_use);
+
+        $days = $meetings->groupBy('day_formatted');
 
         if ($group_by_region) {
             $days = $days->transform(function ($meetings) {
@@ -353,7 +365,7 @@ class Controller extends BaseController
         }
 
         //output PDF
-        $pdf = PDF::loadView('pdf', compact('days', 'font', 'numbering', 'group_by_region'))->setPaper([0, 0, $width, $height]);
+        $pdf = PDF::loadView('pdf', compact('days', 'font', 'numbering', 'group_by_region', 'types_in_use', 'types'))->setPaper([0, 0, $width, $height]);
 
         return ($stream) ? $pdf->stream() : $pdf->download('directory.pdf');
     }
