@@ -126,7 +126,7 @@
                                 <h3>{{ $region }}</h3>
                             @endif
                             @foreach ($meetings as $meeting)
-                                @include('meeting', compact('meeting'))
+                                @include('meeting', compact('meeting', 'region'))
                             @endforeach
                         </div>
                     @endforeach

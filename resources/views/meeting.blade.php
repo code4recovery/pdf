@@ -6,15 +6,19 @@
         <div class="name">
             {{ $meeting->name }}
         </div>
-        <div>
-            {{ $meeting->location }}
-        </div>
+        @if ($meeting->name !== $meeting->location)
+            <div>
+                {{ $meeting->location }}
+            </div>
+        @endif
         <div>
             {{ $meeting->address }}
         </div>
-        <div>
-            {{ $meeting->regions_formatted }}
-        </div>
+        @if (empty($region) || $region !== $meeting->regions_formatted)
+            <div>
+                {{ $meeting->regions_formatted }}
+            </div>
+        @endif
     </div>
     <div class="types">
         {{ implode(', ', $meeting->types) }}
