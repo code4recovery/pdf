@@ -142,7 +142,6 @@
                 </div>
             @endforeach
         @endif
-        @include('legend', compact('types_in_use', 'types'))
     </main>
 </body>
 
