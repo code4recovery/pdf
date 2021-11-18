@@ -352,10 +352,8 @@ class Controller extends BaseController
             });
         }
 
-        $view = $group_by_region ? 'pdf-region' : 'pdf';
-
         //output PDF
-        $pdf = PDF::loadView($view, compact('days', 'font', 'numbering'))->setPaper([0, 0, $width, $height]);
+        $pdf = PDF::loadView('pdf', compact('days', 'font', 'numbering', 'group_by_region'))->setPaper([0, 0, $width, $height]);
 
         return ($stream) ? $pdf->stream() : $pdf->download('directory.pdf');
     }
