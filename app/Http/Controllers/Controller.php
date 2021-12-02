@@ -94,6 +94,9 @@ class Controller extends BaseController
             'download' => 'Download',
             'stream' => 'Stream',
         ];
+        $options = [
+            'legend' => 'Meeting Types Legend',
+        ];
         $languages = [
             'en' => 'English',
             'es' => 'Español',
@@ -105,7 +108,7 @@ class Controller extends BaseController
         ];
         $types = self::$types;
 
-        return view('home', compact('fonts', 'modes', 'languages', 'types', 'group_by', 'json'));
+        return view('home', compact('fonts', 'modes', 'options', 'languages', 'types', 'group_by', 'json'));
     }
 
     public function pdf()
@@ -120,6 +123,7 @@ class Controller extends BaseController
         $language = request('language', 'en');
         $type = request('type', false);
         $stream = request('mode') === 'stream';
+        $options = request('options', []);
         $group_by_region = request('group_by', 'day-region') === 'day-region';
         $types = self::$types;
 
@@ -365,7 +369,8 @@ class Controller extends BaseController
         }
 
         //output PDF
-        $pdf = PDF::loadView('pdf', compact('days', 'font', 'numbering', 'group_by_region', 'types_in_use', 'types'))->setPaper([0, 0, $width, $height]);
+        $pdf = PDF::loadView('pdf', compact('days', 'font', 'numbering', 'group_by_region', 'types_in_use', 'types', 'options'))
+            ->setPaper([0, 0, $width, $height]);
 
         return ($stream) ? $pdf->stream() : $pdf->download('directory.pdf');
     }

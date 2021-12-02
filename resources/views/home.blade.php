@@ -117,6 +117,17 @@
                     </div>
                 @endforeach
             </div>
+            <div class="col-md-6 mb-4">
+                <label class="form-label fw-bold">Options</label>
+                @foreach ($options as $option => $label)
+                    <div class="form-check">
+                        {!! Form::checkbox('options[]', $option, in_array($option, old('options', [])), ['id' => 'option-' . $option, 'class' => 'form-check-input']) !!}
+                        <label class="form-check-label" for="option-{{ $option }}">
+                            {{ $label }}
+                        </label>
+                    </div>
+                @endforeach
+            </div>
             <div class="col-12 text-center my-4">
                 {!! Form::submit('Generate', [
     'class' => 'btn btn-primary btn-lg px-4',

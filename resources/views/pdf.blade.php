@@ -115,7 +115,9 @@
 <body>
     <footer></footer>
     <main>
-        @include('legend', compact('types_in_use', 'types'))
+        @if (in_array('legend', $options))
+            @include('legend', compact('types_in_use', 'types'))
+        @endif
         @if ($group_by_region)
             @foreach ($days as $day => $regions)
                 <div class="day">

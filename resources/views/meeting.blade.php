@@ -7,9 +7,7 @@
             {{ $meeting->name }}
         </div>
         @if ($meeting->name !== $meeting->location)
-            <div>
-                {{ $meeting->location }}
-            </div>
+            {{ $meeting->location }}
         @endif
         <div>
             {{ $meeting->address }}
