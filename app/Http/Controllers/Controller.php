@@ -274,7 +274,11 @@ class Controller extends BaseController
             }
 
             //validate address
-            if (empty($meeting->address) && (empty($meeting->formatted_address) || substr_count($meeting->formatted_address, ', ') !== 3)) {
+            if (!empty($meeting->approximate)) {
+                if ($meeting->approximate === 'yes') {
+                    return false;
+                }
+            } elseif (empty($meeting->address) && (empty($meeting->formatted_address) || substr_count($meeting->formatted_address, ', ') !== 3)) {
                 return false;
             }
 
