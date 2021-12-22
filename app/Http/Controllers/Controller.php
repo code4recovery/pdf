@@ -300,8 +300,7 @@ class Controller extends BaseController
 
             //make address
             if (empty($meeting->address)) {
-                list($address, $city, $state_zip, $country) = explode(', ', $meeting->formatted_address);
-                $meeting->address = $address;
+                $meeting->address = empty($meeting->formatted_address) ? '' : explode(',', $meeting->formatted_address)[0];
             }
 
             if (
