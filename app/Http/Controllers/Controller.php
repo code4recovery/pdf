@@ -133,16 +133,19 @@ class Controller extends BaseController
                 'days' => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
                 'noon' => 'Noon',
                 'midnight' => 'Midnight',
+                'no_name' => 'Unnamed Meeting',
             ],
             'es' => [
                 'days' => ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
                 'noon' => 'Mediodía',
                 'midnight' => 'Doce',
+                'no_name' => 'Reunión sin nombre',
             ],
             'fr' => [
                 'days' => ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
                 'noon' => 'Midi',
                 'midnight' => 'Minuit',
+                'no_name' => 'Réunion sans nom',
             ],
         ];
 
@@ -246,6 +249,12 @@ class Controller extends BaseController
             if (!isset($meeting->types) || !is_array($meeting->types)) {
                 $meeting->types = [];
             }
+
+            //full address alias (GSO)
+            if (!empty($meeting->full_address) && empty($meeting->formatted_address)) {
+                $meeting->formatted_address = $meeting->full_address;
+            }
+
             return $meeting;
         })->filter(function ($meeting) use ($strings, $language, $type) {
             //validate day
@@ -268,11 +277,6 @@ class Controller extends BaseController
                 return false;
             }
 
-            //full address alias
-            if (!empty($meeting->full_address) && empty($meeting->formatted_address)) {
-                $meeting->formatted_address = $meeting->full_address;
-            }
-
             //validate address
             if (!empty($meeting->approximate)) {
                 if ($meeting->approximate === 'yes') {
@@ -283,7 +287,13 @@ class Controller extends BaseController
             }
 
             return true;
-        })->map(function ($meeting, $key) use ($strings, $language, $type, $types) {
+        })->map(function ($meeting) use ($strings, $language, $type, $types) {
+
+            //empty meeting name?
+            if (empty($meeting->name)) {
+                $meeting->name = $strings[$language]['no_name'];
+            }
+
             //make day weekday
             $meeting->day_formatted = $strings[$language]['days'][$meeting->day];
 
