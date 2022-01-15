@@ -6,10 +6,10 @@
         <div class="name">
             {{ $meeting->name }}
         </div>
-        @if ($meeting->name !== $meeting->location)
-            {{ $meeting->location }}
-        @endif
         <div>
+            @if ($meeting->name !== $meeting->location)
+                {{ $meeting->location }},
+            @endif
             {{ $meeting->address }}
         </div>
         @if (empty($region) || $region !== $meeting->regions_formatted)
