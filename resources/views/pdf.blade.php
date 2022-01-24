@@ -113,7 +113,9 @@
 </head>
 
 <body>
-    <footer></footer>
+    @if ($numbering !== false)
+        <footer></footer>
+    @endif
     <main>
         @if (in_array('legend', $options))
             @include('legend', compact('types_in_use', 'types'))

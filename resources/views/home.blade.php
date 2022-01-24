@@ -66,12 +66,11 @@
                 {!! Form::number('numbering', old('numbering', 1), [
     'class' => 'form-control',
     'id' => 'numbering',
-    'required' => true,
 ]) !!}
             </div>
             <div class="col-md-6 mb-4">
                 <label class="form-label fw-bold" for="type">Type</label>
-                {!! Form::select('type', ['' => 'Any Type'] + $types, old('type', ''), ['id' => 'type', 'class' => 'form-control']) !!}
+                {!! Form::select('type', ['' => 'Any Type'] + $types, old('type', ''), ['id' => 'type', 'class' => 'form-select']) !!}
             </div>
             <div class="col-md-6 mb-4">
                 <label class="form-label fw-bold">Language</label>

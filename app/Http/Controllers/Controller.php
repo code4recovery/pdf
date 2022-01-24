@@ -120,7 +120,8 @@ class Controller extends BaseController
         $width = floatval(request('width', 4.25)) * 72;
         $height = floatval(request('height', 11)) * 72;
         $font = request('font') === 'sans-serif' ? 'Helvetica' : 'Georgia';
-        $numbering = intval(request('numbering', 1));
+        $numbering = request('numbering', false);
+        if ($numbering) $numbering = intval($numbering);
         $language = request('language', 'en');
         $type = request('type', false);
         $stream = request('mode') === 'stream';
