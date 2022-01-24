@@ -340,7 +340,10 @@ class Controller extends BaseController
             }
 
             //sort types for readability
-            $meeting->types = array_filter(array_map('strtoupper', $meeting->types), function ($type) use ($types) {
+            $meeting->types = array_filter(array_map(function ($type) {
+                if ($type === '12x12') return $type;
+                return strtoupper($type);
+            }, $meeting->types), function ($type) use ($types) {
                 return array_key_exists($type, $types);
             });
 
