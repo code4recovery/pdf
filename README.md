@@ -1,64 +1,41 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+# Meeting Schedule PDF Generator
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This service accepts a [Meeting Guide-formatted JSON feed](https://github.com/code4recovery/spec) and returns inside pages for a PDF meeting schedule.
 
-## About Laravel
+This system is designed for weekly in-person recovery meetings. It does not display online-only, inactive, or by-appointment meetings.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Assemble a PDF
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+This service provides the inside pages of a meeting book. To create the outer pages and merge it all into a single PDF:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. Decide on a paper size. The default is 4.25 x 11, so that it can be printed on standard US Letter and stapled down the middle.
+1. Create a Google or Word doc at that paper size. [Here is an example "before" Google doc](https://docs.google.com/document/d/1bmDg2j8cyalcqnw5GV1JJll7g8Av7uW6O6o4kVADwEc/edit?usp=sharing) you can copy. (Note: Google Docs doesn't support custom paper sizes, but the [Page Sizer app](https://workspace.google.com/marketplace/app/page_sizer/595382898724) will enable that functionality).
+1. Download it as a PDF, taking note of how many pages it is.
+1. Now generate your inside pages at (pdf.code4recovery.org)[https://pdf.code4recovery.org]. Set the paper size and starting page number according to the results of the steps above.
+1. Open the downloaded PDF document locally. I used Preview (on Mac) for this. Then you can drag your "Meeting Directory Before" PDF to the start of this document, in the thumbnails area on the left side. (Note: I found that it works better if I add my Google Doc _to_ my generated PDF, and not vice-versa).
+1. If you don't want to add content after the meetings, you're done! If you do then [here is an example "after" doc](https://docs.google.com/document/d/1whm-ZL1JbZFinSRnbt4uKvFM6Hhv8e246TYtadsnVZQ/edit?usp=sharing) you can copy.
+1. Set the page numbers to start where they need to and save the PDF locally.
+1. Now drag it to the bottom of your thumbnails in Preview and hit save. Now you have a complete meeting schedule PDF.
 
-## Learning Laravel
+## Booklet printing
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Once nice way to use this is to print a meeting booklet for a central office. To get booklet printing to work properly, the first step is to assemble the booklet following the instructions above.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+You will need a duplex printer and a program such as [Adobe Reader](https://get.adobe.com/reader/) (free) to print bookletized. Open the file in Reader, hit Print, and:
 
-## Laravel Sponsors
+-   Select "Booklet"
+-   Booklet subset should be "Both Sides"
+-   Binding should be "Left (Tall)"
+-   Then eliminate page margins by going to to Page Setup… -> Paper Size > Custom > 8.5 x 11 and set the margins to 0
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+This should print a stack of pages that you can fold and staple down the middle. Voila!
 
-### Premium Partners
+## Next steps
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+-   [x] group by region / sub-region
+-   [x] home page form
+-   [x] publish
+-   [x] invalid URL / JSON error handling
+-   [x] stream mode
+-   [ ] printing screencast video
+-   [ ] mode to show which meetings are skipped
