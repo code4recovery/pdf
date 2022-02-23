@@ -11,12 +11,10 @@
 
         body {
             color: black;
+            counter-increment: page 1;
+            counter-reset: page {{ $numbering - 1 }};
             font-family: {{ $font }};
             font-size: 12px;
-        }
-
-        body::before {
-            counter-increment: page {{ $numbering - 1 }};
         }
 
         h1 {
