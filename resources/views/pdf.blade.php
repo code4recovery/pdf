@@ -33,8 +33,12 @@
             text-transform: uppercase;
         }
 
-        .day,
         .legend {
+            page-break-after: always;
+        }
+
+
+        @if ($group_by === 'region-day').region @else .day @endif {
             page-break-after: always;
         }
 
@@ -118,7 +122,7 @@
         @if (in_array('legend', $options))
             @include('legend', compact('types_in_use', 'types'))
         @endif
-        @if ($group_by_region)
+        @if ($group_by === 'day-region')
             @foreach ($days as $day => $regions)
                 <div class="day">
                     <h1>{{ $day }}</h1>
@@ -126,6 +130,22 @@
                         <div class="region">
                             @if ($region)
                                 <h3>{{ $region }}</h3>
+                            @endif
+                            @foreach ($meetings as $meeting)
+                                @include('meeting', compact('meeting', 'region'))
+                            @endforeach
+                        </div>
+                    @endforeach
+                </div>
+            @endforeach
+        @elseif ($group_by === 'region-day')
+            @foreach ($regions as $region => $days)
+                <div class="region">
+                    <h1>{{ $region }}</h1>
+                    @foreach ($days as $day => $meetings)
+                        <div class="day">
+                            @if ($day)
+                                <h3>{{ $day }}</h3>
                             @endif
                             @foreach ($meetings as $meeting)
                                 @include('meeting', compact('meeting', 'region'))
