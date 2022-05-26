@@ -281,7 +281,11 @@ class Controller extends BaseController
             }
 
             //validate address
-            if (!empty($meeting->approximate)) {
+            if (!empty($meeting->coordinates)) {
+                if (substr_count($meeting->coordinates, ',') > 1) {
+                    return false;
+                }
+            } elseif (!empty($meeting->approximate)) {
                 if ($meeting->approximate === 'yes') {
                     return false;
                 }
