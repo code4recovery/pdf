@@ -330,6 +330,9 @@ class Controller extends BaseController
 
             //region(s)
             if (!empty($meeting->regions)) {
+                if (is_string($meeting->regions)) {
+                    $meeting->regions = array_map('trim', explode('>', $meeting->regions));
+                }
                 $meeting->regions_formatted = implode(': ', $meeting->regions);
             } elseif (!empty($meeting->region)) {
                 $meeting->regions_formatted = $meeting->region;
