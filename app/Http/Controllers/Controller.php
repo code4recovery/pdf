@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Http;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -88,41 +89,50 @@ class Controller extends BaseController
         );
 
         $fonts = [
-            'sans-serif' => 'Sans Serif',
-            'serif' => 'Serif',
+            'sans-serif' => __('c4r.pdf.home.label.sans_serif'),
+            'serif' => __('c4r.pdf.home.label.serif'),
         ];
         $modes = [
-            'download' => 'Download',
-            'stream' => 'Stream',
+            'download' => __('c4r.pdf.home.label.download'),
+            'stream' => __('c4r.pdf.home.label.stream'),
         ];
         $options = [
-            'legend' => 'Meeting Types Legend',
+            'legend' => __('c4r.pdf.home.label.meeting_types_legend'),
+            'omit-numbering' => __('c4r.pdf.home.label.omit_page_numbering'),
         ];
         $languages = [
-            'en' => 'English',
-            'es' => 'Español',
-            'fr' => 'Français',
+            'en' => __('c4r.pdf.home.label.en'),
+            'es' => __('c4r.pdf.home.label.es'),
+            'fr' => __('c4r.pdf.home.label.fr'),
         ];
         $group_by = [
-            'day-region' => 'Day → Region',
-            'day' => 'Day',
-            'region-day' => 'Region → Day',
+            'day-region' => __('c4r.pdf.home.label.day_region'),
+            'day' => __('c4r.pdf.home.label.day'),
+            'region-day' => __('c4r.pdf.home.label.region_day'),
         ];
         $types = self::$types;
 
         return view('home', compact('fonts', 'modes', 'options', 'languages', 'types', 'group_by', 'json'));
     }
 
-    public function pdf()
+    public function pdf(Request $http)
     {
-
         //parse input
         $json = request('json');
         $width = floatval(request('width', 4.25)) * 72;
         $height = floatval(request('height', 11)) * 72;
         $font = request('font') === 'sans-serif' ? 'Helvetica' : 'Georgia';
-        $numbering = request('numbering', false);
-        if ($numbering) $numbering = intval($numbering);
+
+        $options = request()->get('options');
+        $numbering = false;
+        if (is_array($options) && in_array('omit-numbering', $options)) {
+            $numbering = false;
+        } else {
+            if (request()->has('numbering') && !is_null(request()->get('numbering'))) {
+                $numbering = !!request()->get('numbering');
+            }
+        }
+
         $language = request('language', 'en');
         $type = request('type', false);
         $stream = request('mode') === 'stream';
@@ -131,6 +141,7 @@ class Controller extends BaseController
         $types = self::$types;
 
         //process data
+        // @todo Consider using the localiation engine to do this.
         $strings = [
             'en' => [
                 'days' => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
@@ -161,7 +172,7 @@ class Controller extends BaseController
 
         //fetch data
         try {
-            $response = Http::get($useJson);
+            $response = Http::withoutVerifying()->get($useJson);
         } catch (Exception $e) {
             $error = 'Could not fetch data. Please check the address. Received the following message: ' . $e->getMessage();
             return back()->with('error', $error)->withInput();
