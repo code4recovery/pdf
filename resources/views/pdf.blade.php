@@ -101,7 +101,7 @@
         }
 
         footer::after {
-            /*border-top: 0.5px solid black;*/
+            border-top: 0.5px solid black;
             content: counter(page);
             left: 50%;
             margin-left: -20px;
