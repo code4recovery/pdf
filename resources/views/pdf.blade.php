@@ -27,7 +27,7 @@
         h3 {
             font-weight: normal;
             font-size: 11px;
-            margin: 5px 0 7px;
+            margin: 1px 0 3px;
             page-break-after: avoid;
             text-decoration: underline;
             text-transform: uppercase;
@@ -38,7 +38,12 @@
         }
 
 
-        @if ($group_by === 'region-day').region @else .day @endif {
+        @if ($group_by === 'region-day')
+            .region
+        @else
+            .day
+        @endif
+            {
             page-break-after: always;
         }
 
@@ -66,7 +71,7 @@
         }
 
         .meeting {
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             padding: 0 75px;
             page-break-inside: avoid;
             position: relative;
@@ -110,7 +115,6 @@
             text-align: center;
             width: 40px;
         }
-
     </style>
 </head>
 
