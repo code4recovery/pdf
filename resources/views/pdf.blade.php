@@ -71,25 +71,26 @@
         }
 
         .meeting {
-            margin-bottom: 5px;
-            padding: 0 75px;
+            border-spacing: 0;
+            margin: 0 0 5px;
+            padding: 0;
             page-break-inside: avoid;
-            position: relative;
+            vertical-align: top;
+            width: 100%;
+        }
+
+        .meeting td {
+            margin: 0;
+            padding: 0;
+            vertical-align: top;
         }
 
         .meeting .time,
         .meeting .types {
-            position: absolute;
-            top: 0;
             width: 65px;
         }
 
-        .meeting .time {
-            left: 0;
-        }
-
         .meeting .types {
-            right: 0;
             text-align: right;
         }
 
