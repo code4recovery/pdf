@@ -80,13 +80,16 @@ class Controller extends BaseController
     public function home()
     {
 
-        //parse input
+        // default input
         $json = request(
             'json',
             'https://demo.code4recovery.org/wp-admin/admin-ajax.php?action=meetings'
-            //'https://docs.google.com/spreadsheets/d/12Ga8uwMG4WJ8pZ_SEU7vNETp_aQZ-2yNVsYDFqIwHyE/edit#gid=0'
         );
+        $width = request('width', 4.25);
+        $height = request('height', 11);
+        $numbering = request('numbering', 1);
 
+        // define options
         $fonts = [
             'sans-serif' => 'Sans Serif',
             'serif' => 'Serif',
@@ -110,7 +113,7 @@ class Controller extends BaseController
         ];
         $types = self::$types;
 
-        return view('home', compact('fonts', 'modes', 'options', 'languages', 'types', 'group_by', 'json'));
+        return view('home', compact('fonts', 'modes', 'options', 'languages', 'types', 'group_by', 'json', 'width', 'height', 'numbering'));
     }
 
     public function pdf()
