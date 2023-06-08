@@ -44,19 +44,19 @@
                     </div>
                     <div class="col-md-6 mb-4">
                         <label for="width" class="form-label fw-bold">Width</label>
-                        {{ html()->number('width', old('width', '4.25'), )->attribute('step', '0.01')->required()->id('width')->class('form-control') }}
+                        {{ html()->number('width', old('width', $width), )->attribute('step', '0.01')->required()->id('width')->class('form-control') }}
                     </div>
                     <div class="col-md-6 mb-4">
                         <label for="height" class="form-label fw-bold">
                             Height
                         </label>
-                        {{ html()->number('height', old('height', 11), )->attribute('step', '0.01')->required()->id('height')->class('form-control') }}
+                        {{ html()->number('height', old('height', $height), )->attribute('step', '0.01')->required()->id('height')->class('form-control') }}
                     </div>
                     <div class="col-md-6 mb-4">
                         <label for="numbering" class="form-label fw-bold">
                             Start #
                         </label>
-                        {{ html()->number('numbering', old('numbering', 1), )->id('numbering')->class('form-control') }}
+                        {{ html()->number('numbering', old('numbering', $numbering), )->id('numbering')->class('form-control') }}
                     </div>
                     <div class="col-md-6 mb-4">
                         <label class="form-label fw-bold" for="type">Type</label>
