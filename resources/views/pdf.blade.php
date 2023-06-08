@@ -1,3 +1,7 @@
+@php
+    $page_margin = 18;
+    $footer_height = 20;
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,7 +10,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style type="text/css">
         @page {
-            margin: 18px;
+            margin: {{ $page_margin }}px;
+
+            @if ($numbering !== false)
+                margin-bottom: {{ $footer_height + $page_margin }}px;
+            @endif
         }
 
         body {
@@ -99,8 +107,8 @@
         }
 
         footer {
-            bottom: 0;
-            height: 20px;
+            bottom: -{{ $footer_height }}px;
+            height: {{ $footer_height }}px;
             left: 0;
             position: fixed;
             right: 0;
