@@ -48,7 +48,7 @@
                     </div>
                     <div class="col-md-6 mb-4">
                         <label for="width" class="form-label fw-bold">Width</label>
-                        {!! Form::number('width', old('width', 4.25), [
+                        {!! Form::number('width', old('width', $width), [
                             'class' => 'form-control',
                             'id' => 'width',
                             'required' => true,
@@ -59,7 +59,7 @@
                         <label for="height" class="form-label fw-bold">
                             Height
                         </label>
-                        {!! Form::number('height', old('height', 11), [
+                        {!! Form::number('height', old('height', $height), [
                             'class' => 'form-control',
                             'id' => 'height',
                             'required' => true,
@@ -70,7 +70,7 @@
                         <label for="numbering" class="form-label fw-bold">
                             Start #
                         </label>
-                        {!! Form::number('numbering', old('numbering', 1), [
+                        {!! Form::number('numbering', old('numbering', $numbering), [
                             'class' => 'form-control',
                             'id' => 'numbering',
                         ]) !!}
