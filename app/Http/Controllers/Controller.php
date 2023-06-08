@@ -261,7 +261,7 @@ class Controller extends BaseController
             return $meeting;
         })->filter(function ($meeting) use ($strings, $language, $type) {
             //validate day
-            if (!isset($meeting->day) || !array_key_exists($meeting->day, $strings[$language]['days'])) {
+            if (!isset($meeting->day) || !array_key_exists($language, $strings) || !array_key_exists($meeting->day, $strings[$language]['days'])) {
                 return false;
             }
 

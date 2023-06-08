@@ -24,7 +24,7 @@
     <main class="container-md my-5">
         <div class="row">
             <div class="col-md-6 offset-md-3">
-                {!! Form::open(['url' => 'pdf', 'method' => 'get']) !!}
+                {{ html()->form('GET', '/pdf')->attribute('accept-charset', 'UTF-8')->open() }}
                 <h1>PDF Generator</h1>
                 <p class="lead">
                     This service creates inside pages for a printed meeting schedule
@@ -40,56 +40,33 @@
                         <label class="form-label fw-bold" for="json">
                             Feed or Sheet URL
                         </label>
-                        {!! Form::url('json', old('json', $json), [
-                            'class' => 'form-control',
-                            'id' => 'json',
-                            'required' => true,
-                        ]) !!}
+                        {{ html()->input('url', 'json', old('json', $json))->required()->id('json')->class('form-control') }}
                     </div>
                     <div class="col-md-6 mb-4">
                         <label for="width" class="form-label fw-bold">Width</label>
-                        {!! Form::number('width', old('width', 4.25), [
-                            'class' => 'form-control',
-                            'id' => 'width',
-                            'required' => true,
-                            'step' => '0.01',
-                        ]) !!}
+                        {{ html()->number('width', old('width', '4.25'), )->attribute('step', '0.01')->required()->id('width')->class('form-control') }}
                     </div>
                     <div class="col-md-6 mb-4">
                         <label for="height" class="form-label fw-bold">
                             Height
                         </label>
-                        {!! Form::number('height', old('height', 11), [
-                            'class' => 'form-control',
-                            'id' => 'height',
-                            'required' => true,
-                            'step' => '0.01',
-                        ]) !!}
+                        {{ html()->number('height', old('height', 11), )->attribute('step', '0.01')->required()->id('height')->class('form-control') }}
                     </div>
                     <div class="col-md-6 mb-4">
                         <label for="numbering" class="form-label fw-bold">
                             Start #
                         </label>
-                        {!! Form::number('numbering', old('numbering', 1), [
-                            'class' => 'form-control',
-                            'id' => 'numbering',
-                        ]) !!}
+                        {{ html()->number('numbering', old('numbering', 1), )->id('numbering')->class('form-control') }}
                     </div>
                     <div class="col-md-6 mb-4">
                         <label class="form-label fw-bold" for="type">Type</label>
-                        {!! Form::select('type', ['' => 'Any Type'] + $types, old('type', ''), [
-                            'id' => 'type',
-                            'class' => 'form-select',
-                        ]) !!}
+                        {{ html()->select('type', ['' => 'Any Type'] + $types, old('type', ''))->id('type')->class('form-select') }}
                     </div>
                     <div class="col-md-6 mb-4">
                         <label class="form-label fw-bold">Language</label>
                         @foreach ($languages as $language => $label)
                             <div class="form-check">
-                                {!! Form::radio('language', $language, $language === old('language', 'en'), [
-                                    'id' => 'language-' . $language,
-                                    'class' => 'form-check-input',
-                                ]) !!}
+                                {{ html()->radio('language', $language === old('language', 'en'), $language)->id('language-' . $language)->class('form-check-input') }}
                                 <label class="form-check-label" for="language-{{ $language }}">
                                     {{ $label }}
                                 </label>
@@ -100,10 +77,7 @@
                         <label class="form-label fw-bold">Font</label>
                         @foreach ($fonts as $font => $label)
                             <div class="form-check">
-                                {!! Form::radio('font', $font, $font === old('font', 'sans-serif'), [
-                                    'id' => 'font-' . $font,
-                                    'class' => 'form-check-input',
-                                ]) !!}
+                                {{ html()->radio('font', $font === old('font', 'sans-serif'), $font)->id('font-' . $font)->class('form-check-input') }}
                                 <label class="form-check-label" for="font-{{ $font }}">
                                     {{ $label }}
                                 </label>
@@ -114,10 +88,7 @@
                         <label class="form-label fw-bold">Group by</label>
                         @foreach ($group_by as $group => $label)
                             <div class="form-check-label" class="form-check">
-                                {!! Form::radio('group_by', $group, $group === old('group_by', 'day-region'), [
-                                    'id' => 'group_by-' . $group,
-                                    'class' => 'form-check-input',
-                                ]) !!}
+                                {{ html()->radio('group_by', $group === old('group_by', 'day-region'), $group)->id('group_by-' . $group)->class('form-check-input') }}
                                 <label for="group_by-{{ $group }}">
                                     {{ $label }}
                                 </label>
@@ -128,10 +99,7 @@
                         <label class="form-label fw-bold">Mode</label>
                         @foreach ($modes as $mode => $label)
                             <div class="form-check">
-                                {!! Form::radio('mode', $mode, $mode === old('mode', 'download'), [
-                                    'id' => 'mode-' . $mode,
-                                    'class' => 'form-check-input',
-                                ]) !!}
+                                {{ html()->radio('mode', $mode === old('mode', 'download'), $mode)->id('mode-' . $mode)->class('form-check-input') }}
                                 <label class="form-check-label" for="mode-{{ $mode }}">
                                     {{ $label }}
                                 </label>
@@ -142,10 +110,7 @@
                         <label class="form-label fw-bold">Options</label>
                         @foreach ($options as $option => $label)
                             <div class="form-check">
-                                {!! Form::checkbox('options[]', $option, in_array($option, old('options', [])), [
-                                    'id' => 'option-' . $option,
-                                    'class' => 'form-check-input',
-                                ]) !!}
+                                {{ html()->checkbox('options[]', in_array($option, old('options', [])), $option)->id('option-' . $option)->class('form-check-input') }}
                                 <label class="form-check-label" for="option-{{ $option }}">
                                     {{ $label }}
                                 </label>
@@ -153,12 +118,10 @@
                         @endforeach
                     </div>
                     <div class="col-12 text-center my-4">
-                        {!! Form::submit('Generate', [
-                            'class' => 'btn btn-primary btn-lg px-4',
-                        ]) !!}
+                        {{ html()->submit('Generate')->class('btn btn-primary btn-lg px-4') }}
                     </div>
                 </div>
-                {!! Form::close() !!}
+                {{ html()->form()->close() }}
                 <p class="mb-4 mt-5">
                     More information is available on the
                     <a href="https://github.com/code4recovery/pdf" target="_blank">
