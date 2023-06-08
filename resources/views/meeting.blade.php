@@ -8,7 +8,7 @@
                 {{ $meeting->name }}
             </div>
             <div>
-                @if ($meeting->name !== $meeting->location)
+                @if ($meeting->location && $meeting->location !== $meeting->name)
                     {{ $meeting->location }},
                 @endif
                 {{ $meeting->address }}
