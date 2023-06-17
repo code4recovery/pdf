@@ -117,6 +117,24 @@
                             </div>
                         @endforeach
                     </div>
+                    <div class="col-md-6 mb-4">
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label fw-bold">Legend Header (optional)</label>
+                        {!! Form::textarea('legend_header', null, [
+                                  'id' => 'legend_header',
+                                  'rows' => 4,
+                                  'cols' => 30,
+                         ]) !!}
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label fw-bold">Legend Footer (optional)</label>
+                        {!! Form::textarea('legend_footer', null, [
+                                  'id' => 'legend_footer',
+                                  'rows' => 4,
+                                  'cols' => 30,
+                         ]) !!}
+                    </div>
                     <div class="col-12 text-center my-4">
                         {{ html()->submit('Generate')->class('btn btn-primary btn-lg px-4') }}
                     </div>

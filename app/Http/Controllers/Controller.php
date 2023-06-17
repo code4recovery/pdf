@@ -100,7 +100,6 @@ class Controller extends BaseController
         ];
         $options = [
             'legend' => 'Meeting Types Legend',
-            'date' => 'Print date',
         ];
         $languages = [
             'en' => 'English',
@@ -132,6 +131,8 @@ class Controller extends BaseController
         $stream = request('mode') === 'stream';
         $options = request('options', []);
         $group_by = request('group_by', 'day-region');
+        $legend_header = request('legend_header', '');
+        $legend_footer = request('legend_footer', '');
         $types = self::$types;
 
         //process data
@@ -409,7 +410,7 @@ class Controller extends BaseController
         }
 
         //output PDF
-        $pdf = PDF::loadView('pdf', compact('days', 'font', 'numbering', 'group_by', 'types_in_use', 'regions', 'types', 'options'))
+        $pdf = PDF::loadView('pdf', compact('days', 'font', 'numbering', 'group_by', 'types_in_use', 'regions', 'types', 'options', 'legend_header', 'legend_footer'))
             ->setPaper([0, 0, $width, $height]);
 
         return ($stream) ? $pdf->stream() : $pdf->download('directory.pdf');

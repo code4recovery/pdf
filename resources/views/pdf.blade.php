@@ -66,9 +66,12 @@
             border-bottom: none;
         }
 
-        .date {
+        .legend_header {
+            font-size: 12px;
+        }
+
+        .legend_footer {
             font-size: 8px;
-            text-align: right;
         }
 
         .legend>div span {
@@ -134,17 +137,11 @@
 
 <body>
     @if ($numbering !== false)
-        <footer>
-            @if (in_array('date', $options))
-                <div class="date">
-                    Printed {{ date('Y-m-d') }}
-                </div>
-            @endif
-        </footer>
+        <footer></footer>
     @endif
     <main>
         @if (in_array('legend', $options))
-            @include('legend', compact('types_in_use', 'types'))
+            @include('legend', compact('types_in_use', 'types', 'legend_header', 'legend_footer'))
         @endif
         @if ($group_by === 'day-region')
             @foreach ($days as $day => $regions)
