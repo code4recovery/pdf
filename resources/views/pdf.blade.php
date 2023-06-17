@@ -52,7 +52,11 @@
             .day
         @endif
             {
+            @if (in_array('compact', $options))
+            padding-bottom: 10px;
+            @else
             page-break-after: always;
+            @endif
         }
 
         .legend>div {

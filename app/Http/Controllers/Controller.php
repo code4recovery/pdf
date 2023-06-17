@@ -100,6 +100,7 @@ class Controller extends BaseController
         ];
         $options = [
             'legend' => 'Meeting Types Legend',
+            'compact' => 'Compact format',
         ];
         $languages = [
             'en' => 'English',
