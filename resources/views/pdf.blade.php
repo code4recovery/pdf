@@ -66,6 +66,11 @@
             border-bottom: none;
         }
 
+        .date {
+            font-size: 8px;
+            text-align: right;
+        }
+
         .legend>div span {
             display: inline-block;
         }
@@ -129,7 +134,13 @@
 
 <body>
     @if ($numbering !== false)
-        <footer></footer>
+        <footer>
+            @if (in_array('date', $options))
+                <div class="date">
+                    Printed {{ date('Y-m-d') }}
+                </div>
+            @endif
+        </footer>
     @endif
     <main>
         @if (in_array('legend', $options))

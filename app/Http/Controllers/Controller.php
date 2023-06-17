@@ -100,6 +100,7 @@ class Controller extends BaseController
         ];
         $options = [
             'legend' => 'Meeting Types Legend',
+            'date' => 'Print date',
         ];
         $languages = [
             'en' => 'English',
