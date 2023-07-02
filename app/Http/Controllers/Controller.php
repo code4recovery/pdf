@@ -164,7 +164,7 @@ class Controller extends BaseController
 
         //fetch data
         try {
-            $response = Http::get($useJson);
+            $response = Http::withOptions(['verify' => false])->get($useJson);
         } catch (Exception $e) {
             $error = 'Could not fetch data. Please check the address. Received the following message: ' . $e->getMessage();
             return back()->with('error', $error)->withInput();
