@@ -246,6 +246,25 @@ class Controller extends BaseController
             return back()->with('error', 'Could not parse JSON data. Response was ' . substr(trim($response->body()), 0, 100) . '…')->withInput();
         }
 
+        // Where $meetings[n]['day'] is an array, create separate values for each day
+        foreach ($meetings as $key => $entry) {
+            if (is_array($entry['day'])) {
+                // Remove non zero empty values (NULL, FALSE & '')
+                $days = array_filter($entry['day'], 'strlen');
+                $first = reset($days);
+                foreach ($days as $day) {
+                    if ($day == $first){
+                        $meetings[$key]['day'] = $day;
+                    } else {
+                        $new_meeting = $entry;
+                        $new_meeting['day'] = $day;
+                        $new_meeting['slug'] .= '-'.$day;
+                        $meetings[] = $new_meeting;
+                    }
+                }
+            }
+        }
+
         //make a laravel collection, sort, & sanitize
         $meetings = collect($meetings)->map(function ($meeting) {
             //convert to object
