@@ -253,12 +253,12 @@ class Controller extends BaseController
                 $days = array_filter($entry['day'], 'strlen');
                 $first = reset($days);
                 foreach ($days as $day) {
-                    if ($day == $first){
+                    if ($day == $first) {
                         $meetings[$key]['day'] = $day;
                     } else {
                         $new_meeting = $entry;
                         $new_meeting['day'] = $day;
-                        $new_meeting['slug'] .= '-'.$day;
+                        $new_meeting['slug'] .= '-' . $day;
                         $meetings[] = $new_meeting;
                     }
                 }
