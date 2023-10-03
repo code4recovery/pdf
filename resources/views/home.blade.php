@@ -24,7 +24,13 @@
     <main class="container-md my-5">
         <div class="row">
             <div class="col-md-6 offset-md-3">
-                {{ html()->form('GET', '/pdf')->attribute('accept-charset', 'UTF-8')->open() }}
+                @php
+                $url = '/pdf';
+                if (env('PDFPREVIEW') === true) {
+                    $url = '/pdfpreview';
+                }
+                @endphp
+                {{ html()->form('GET', $url)->attribute('accept-charset', 'UTF-8')->open() }}
                 <h1>PDF Generator</h1>
                 <p class="lead">
                     This service creates inside pages for a printed meeting schedule
@@ -108,11 +114,11 @@
                     </div>
                     <div class="col-md-6 mb-4">
                         <label class="form-label fw-bold">Options</label>
-                        @foreach ($options as $option => $label)
+                        @foreach ($options as $optionkey => $option)
                             <div class="form-check">
-                                {{ html()->checkbox('options[]', in_array($option, old('options', [])), $option)->id('option-' . $option)->class('form-check-input') }}
-                                <label class="form-check-label" for="option-{{ $option }}">
-                                    {{ $label }}
+                                {{ html()->checkbox('options[]', in_array($optionkey, old('options', [])), $optionkey)->id('option-' . $optionkey)->class('form-check-input')->checked($option['checked']) }}
+                                <label class="form-check-label" for="option-{{ $optionkey }}">
+                                    {{ $option['label'] }}
                                 </label>
                             </div>
                         @endforeach
