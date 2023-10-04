@@ -108,11 +108,11 @@
                     </div>
                     <div class="col-md-6 mb-4">
                         <label class="form-label fw-bold">Options</label>
-                        @foreach ($options as $option => $label)
+                        @foreach ($options as $optionkey => $option)
                             <div class="form-check">
-                                {{ html()->checkbox('options[]', in_array($option, old('options', [])), $option)->id('option-' . $option)->class('form-check-input') }}
-                                <label class="form-check-label" for="option-{{ $option }}">
-                                    {{ $label }}
+                                {{ html()->checkbox('options[]', in_array($optionkey, old('options', [])), $optionkey)->id('option-' . $optionkey)->class('form-check-input')->checked($option['checked']) }}
+                                <label class="form-check-label" for="option-{{ $optionkey }}">
+                                    {{ $option['label'] }}
                                 </label>
                             </div>
                         @endforeach
