@@ -17,8 +17,5 @@ use Illuminate\Support\Facades\Route;
 //show home page
 Route::get('/', [Controller::class, 'home']);
 
-//show pdf preview page
-Route::get('pdfpreview', [Controller::class, 'pdfpreview']);
-
 //show pdf
 Route::get('pdf', [Controller::class, 'pdf']);
