@@ -45,15 +45,10 @@
             page-break-after: always;
         }
 
-
-        @if ($group_by === 'region-day')
-            .region
-        @else
-            .day
-        @endif
-            {
+        @if (in_array('pagebreaks', $options))@if ($group_by === 'region-day') .region @else.day @endif{
             page-break-after: always;
-        }
+        }@endif
+
 
         .legend>div {
             font-size: 9px;

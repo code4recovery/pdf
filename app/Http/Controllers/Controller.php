@@ -99,7 +99,14 @@ class Controller extends BaseController
             'stream' => 'Stream',
         ];
         $options = [
-            'legend' => 'Meeting Types Legend',
+            'legend' => [
+                'label' => 'Meeting Types Legend',
+                'checked' => false,
+            ],
+            'pagebreaks' => [
+                'label' => 'Page Breaks After Groups',
+                'checked' => true,
+            ],
         ];
         $languages = [
             'en' => 'English',
