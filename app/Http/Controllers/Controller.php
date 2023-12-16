@@ -17,13 +17,13 @@ class Controller extends BaseController
 
     private static $typesJsonUrl = "https://raw.githubusercontent.com/code4recovery/spec/main/data/types.json";
 
-    private $types = [];
+    private static $types = [];
 
     public function __construct()
     {
         $fetchedTypes = json_decode(file_get_contents(self::$typesJsonUrl));
         foreach ($fetchedTypes as $typeKey => $typeTranslations) {
-            $this->types[$typeKey] = $typeTranslations->en;
+            self::$types[$typeKey] = $typeTranslations->en;
         }
     }
 
@@ -68,7 +68,7 @@ class Controller extends BaseController
             'day' => 'Day',
             'region-day' => 'Region → Day',
         ];
-        $types = $this->types;
+        $types = self::$types;
 
         return view('home', compact('fonts', 'modes', 'options', 'languages', 'types', 'group_by', 'json', 'width', 'height', 'numbering'));
     }
