@@ -7,7 +7,6 @@
     "require": {
         "php": "^8.1.0",
         "barryvdh/laravel-dompdf": "^2.0.1",
-        "code4recovery/spec": "dev-main",
         "guzzlehttp/guzzle": "^7.6.1",
         "laravel/framework": "^10.0",
         "laravel/sanctum": "^3.2",

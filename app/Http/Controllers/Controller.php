@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Code4Recovery\Spec;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -16,11 +15,16 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    private static Spec $spec;
+    private static $typesJsonUrl = "https://raw.githubusercontent.com/code4recovery/spec/main/data/types.json";
+
+    private static $types = [];
 
     public function __construct()
     {
-        self::$spec = new Spec();
+        $fetchedTypes = json_decode(file_get_contents(self::$typesJsonUrl));
+        foreach ($fetchedTypes as $typeKey => $typeTranslations) {
+            self::$types[$typeKey] = $typeTranslations->en;
+        }
     }
 
     public function home()
@@ -54,35 +58,37 @@ class Controller extends BaseController
                 'checked' => true,
             ],
         ];
-        $languages = self::$spec->getLanguages();
+        $languages = [
+            'en' => 'English',
+            'es' => 'Español',
+            'fr' => 'Français',
+        ];
         $group_by = [
             'day-region' => 'Day → Region',
             'day' => 'Day',
             'region-day' => 'Region → Day',
         ];
-        $types = self::$spec->getTypesByLanguage('en');
+        $types = self::$types;
 
         return view('home', compact('fonts', 'modes', 'options', 'languages', 'types', 'group_by', 'json', 'width', 'height', 'numbering'));
     }
 
     public function pdf()
     {
-        // Set to true to preview output as a normal blade template in browser
-        $debug = false;
 
         //parse input
         $json = request('json');
         $width = floatval(request('width', 4.25)) * 72;
         $height = floatval(request('height', 11)) * 72;
-        $language = request('language', 'en');
-        $font = $language === 'ja' ? (request('font') === 'sans-serif' ? 'Noto Sans JP' : 'Zen Old Mincho') : (request('font') === 'sans-serif' ? 'Helvetica' : 'Georgia');
+        $font = request('font') === 'sans-serif' ? 'Helvetica' : 'Georgia';
         $numbering = request('numbering', false);
         if ($numbering) $numbering = intval($numbering);
+        $language = request('language', 'en');
         $type = request('type', false);
         $stream = request('mode') === 'stream';
         $options = request('options', []);
         $group_by = request('group_by', 'day-region');
-        $types = self::$spec->getTypesByLanguage($language);
+        $types = self::$types;
 
         //process data
         $strings = [
@@ -91,40 +97,20 @@ class Controller extends BaseController
                 'noon' => 'Noon',
                 'midnight' => 'Midnight',
                 'no_name' => 'Unnamed Meeting',
-                'meeting_types' => 'Meeting Types',
             ],
             'es' => [
                 'days' => ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
                 'noon' => 'Mediodía',
                 'midnight' => 'Doce',
                 'no_name' => 'Reunión sin nombre',
-                'meeting_types' => 'Tipos de reuniones',
             ],
             'fr' => [
                 'days' => ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
                 'noon' => 'Midi',
                 'midnight' => 'Minuit',
                 'no_name' => 'Réunion sans nom',
-                'meeting_types' => 'Types de réunions',
-            ],
-            'ja' => [
-                'days' => ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'],
-                'noon' => 'Midi',
-                'midnight' => 'Minuit',
-                'no_name' => 'Réunion sans nom',
-                'meeting_types' => '会議の種類'
-            ],
-            'sv' => [
-                'days' => ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'],
-                'noon' => 'Middag',
-                'midnight' => 'Midnatt',
-                'no_name' => 'Namnlöst möte',
-                'meeting_types' => 'Mötestyper',
             ],
         ];
-
-        // Set translated Meeting Types heading
-        $meeting_types_heading = $strings[$language]['meeting_types'];
 
         //is it google sheet?
         $googleSheet = Str::startsWith($json, 'https://docs.google.com/spreadsheets/d/');
@@ -180,7 +166,7 @@ class Controller extends BaseController
 
             $header_count = count($headers);
 
-            $type_lookup = array_flip(array_map('strtolower', $types));
+            $type_lookup = array_flip(array_map('strtolower', self::$types));
 
             $meetings = array_map(function ($row) use ($headers, $header_count, $strings, $type_lookup) {
                 $row_count = count($row);
@@ -397,13 +383,8 @@ class Controller extends BaseController
             $days = $meetings->groupBy('day_formatted');
         }
 
-        // Debugging
-        if ($debug) {
-            return view('pdf', compact('days', 'font', 'numbering', 'group_by', 'types_in_use', 'regions', 'types', 'options', 'meeting_types_heading'));
-        }
-
         //output PDF
-        $pdf = PDF::loadView('pdf', compact('days', 'font', 'numbering', 'group_by', 'types_in_use', 'regions', 'types', 'options', 'meeting_types_heading'))
+        $pdf = PDF::loadView('pdf', compact('days', 'font', 'numbering', 'group_by', 'types_in_use', 'regions', 'types', 'options'))
             ->setPaper([0, 0, $width, $height]);
 
         return ($stream) ? $pdf->stream() : $pdf->download('directory.pdf');

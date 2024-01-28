@@ -1,5 +1,5 @@
 <div class="legend">
-    <span class="heading">{{ $meeting_types_heading }}</span>
+    <h1>Meeting Types</h1>
     @foreach ($types_in_use as $type)
         <div class="type-row">
             <span class="type">{{ $type }}</span>
