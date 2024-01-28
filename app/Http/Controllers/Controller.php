@@ -15,17 +15,67 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    private static $typesJsonUrl = "https://raw.githubusercontent.com/code4recovery/spec/main/data/types.json";
+    private static $types = [
+        '11' => '11th Step Meditation',
+        '12x12' => '12 Steps & 12 Traditions',
+        'ASL' => 'American Sign Language',
+        'ABSI' => 'As Bill Sees It',
+        'BA' => 'Babysitting Available',
+        'B' => 'Big Book',
+        'H' => 'Birthday',
+        'BI' => 'Bisexual',
+        'BRK' => 'Breakfast',
+        'CAN' => 'Candlelight',
+        'CF' => 'Child-Friendly',
+        'C' => 'Closed',
+        'AL-AN' => 'Concurrent with Al-Anon',
+        'AL' => 'Concurrent with Alateen',
+        'XT' => 'Cross Talk Permitted',
+        'DR' => 'Daily Reflections',
+        'DB' => 'Digital Basket',
+        'D' => 'Discussion',
+        'DD' => 'Dual Diagnosis',
+        'EN' => 'English',
+        'FF' => 'Fragrance Free',
+        'FR' => 'French',
+        'G' => 'Gay',
+        'GR' => 'Grapevine',
+        'HE' => 'Hebrew',
+        'NDG' => 'Indigenous',
+        'ITA' => 'Italian',
+        'JA' => 'Japanese',
+        'KOR' => 'Korean',
+        'L' => 'Lesbian',
+        'LGBTQ' => 'LGBTQ',
+        'LIT' => 'Literature',
+        'LS' => 'Living Sober',
+        'TC' => 'Location Temporarily Closed',
+        'MED' => 'Meditation',
+        'M' => 'Men',
+        'N' => 'Native American',
+        'BE' => 'Newcomer',
+        'O' => 'Open',
+        'OUT' => 'Outdoor',
+        'POC' => 'People of Color',
+        'POL' => 'Polish',
+        'POR' => 'Portuguese',
+        'P' => 'Professionals',
+        'PUN' => 'Punjabi',
+        'RUS' => 'Russian',
+        'A' => 'Secular',
+        'SEN' => 'Seniors',
+        'SM' => 'Smoking Permitted',
+        'S' => 'Spanish',
+        'SP' => 'Speaker',
+        'ST' => 'Step Study',
+        'TR' => 'Tradition Study',
+        'T' => 'Transgender',
+        'X' => 'Wheelchair Access',
+        'XB' => 'Wheelchair-Accessible Bathroom',
+        'W' => 'Women',
+        'Y' => 'Young People',
+    ];
 
-    private static $types = [];
-
-    public function __construct()
-    {
-        $fetchedTypes = json_decode(file_get_contents(self::$typesJsonUrl));
-        foreach ($fetchedTypes as $typeKey => $typeTranslations) {
-            self::$types[$typeKey] = $typeTranslations->en;
-        }
-    }
 
     public function home()
     {
