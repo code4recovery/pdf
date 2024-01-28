@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dd1ff5819517737742b44e00fb5d4e9c",
+    "content-hash": "2a72be0b7e2156930a80509fdeb98765",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -275,7 +275,7 @@
         },
         {
             "name": "code4recovery/spec",
-            "version": "dev-main",
+            "version": "v1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/anchovie91471/c4r-spec.git",
@@ -291,7 +291,6 @@
                 "ext-json": "*",
                 "php": ">=7.4"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -310,7 +309,7 @@
             "description": "The goal of the Meeting Guide API is help sync information about AA meetings. It was developed for the Meeting Guide app, but it is non-proprietary and other systems are encouraged to make use of it.",
             "support": {
                 "issues": "https://github.com/anchovie91471/c4r-spec/issues",
-                "source": "https://github.com/anchovie91471/c4r-spec/tree/v0.1.2-alpha"
+                "source": "https://github.com/anchovie91471/c4r-spec/tree/v1.0.0"
             },
             "time": "2024-01-27T03:43:02+00:00"
         },
@@ -9763,9 +9762,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "code4recovery/spec": 20
-    },
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
