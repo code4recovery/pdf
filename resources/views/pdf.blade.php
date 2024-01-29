@@ -6,8 +6,11 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&family=Zen+Old+Mincho:wght@400;700&display=swap" rel="stylesheet">
     <style type="text/css">
         @page {
             margin: {{ $page_margin }}px;
@@ -25,14 +28,17 @@
             font-size: 12px;
         }
 
-        h1 {
+        .heading {
+            font-weight: bold;
+            display: block;
             border-bottom: 0.5px solid black;
             font-size: 16px;
             margin: 0 0 10px;
             padding-bottom: 4px;
         }
 
-        h3 {
+        .subheading {
+            display: block;
             font-weight: normal;
             font-size: 11px;
             margin: 1px 0 3px;
@@ -133,11 +139,11 @@
         @if ($group_by === 'day-region')
             @foreach ($days as $day => $regions)
                 <div class="day">
-                    <h1>{{ $day }}</h1>
+                    <span class="heading">{{ $day }}</span>
                     @foreach ($regions as $region => $meetings)
                         <div class="region">
                             @if ($region)
-                                <h3>{{ $region }}</h3>
+                                <span class="subheading">{{ $region }}</span>
                             @endif
                             @foreach ($meetings as $meeting)
                                 @include('meeting', compact('meeting', 'region'))
@@ -149,11 +155,11 @@
         @elseif ($group_by === 'region-day')
             @foreach ($regions as $region => $days)
                 <div class="region">
-                    <h1>{{ $region }}</h1>
+                    <span class="heading">{{ $region }}</span>
                     @foreach ($days as $day => $meetings)
                         <div class="day">
                             @if ($day)
-                                <h3>{{ $day }}</h3>
+                                <span class="subheading">{{ $day }}</span>
                             @endif
                             @foreach ($meetings as $meeting)
                                 @include('meeting', compact('meeting', 'region'))
@@ -165,7 +171,7 @@
         @else
             @foreach ($days as $day => $meetings)
                 <div class="day">
-                    <h1>{{ $day }}</h1>
+                    <span class="heading">{{ $day }}</span>
                     @foreach ($meetings as $meeting)
                         @include('meeting', compact('meeting'))
                     @endforeach

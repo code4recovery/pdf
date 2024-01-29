@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a0d7759ee46ee330bd16815e45e68328",
+    "content-hash": "4fc3345279fbfa9e996588103acd100e",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -203,6 +203,46 @@
                 }
             ],
             "time": "2022-02-21T13:15:14+00:00"
+        },
+        {
+            "name": "code4recovery/spec",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/anchovie91471/c4r-spec.git",
+                "reference": "de373cadce2f4763743f624a57944c5d62cf1aa4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/anchovie91471/c4r-spec/zipball/de373cadce2f4763743f624a57944c5d62cf1aa4",
+                "reference": "de373cadce2f4763743f624a57944c5d62cf1aa4",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": ">=7.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Code4Recovery\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Code for Recovery"
+                }
+            ],
+            "description": "The goal of the Meeting Guide API is help sync information about AA meetings. It was developed for the Meeting Guide app, but it is non-proprietary and other systems are encouraged to make use of it.",
+            "support": {
+                "issues": "https://github.com/anchovie91471/c4r-spec/issues",
+                "source": "https://github.com/anchovie91471/c4r-spec/tree/v1.0.0"
+            },
+            "time": "2024-01-27T03:43:02+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
@@ -9522,7 +9562,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.1.0"
+        "php": "^8.2.0"
     },
     "platform-dev": [],
     "plugin-api-version": "2.3.0"

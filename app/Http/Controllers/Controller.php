@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Code4Recovery\Spec;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -15,67 +16,12 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    private static $types = [
-        '11' => '11th Step Meditation',
-        '12x12' => '12 Steps & 12 Traditions',
-        'ASL' => 'American Sign Language',
-        'ABSI' => 'As Bill Sees It',
-        'BA' => 'Babysitting Available',
-        'B' => 'Big Book',
-        'H' => 'Birthday',
-        'BI' => 'Bisexual',
-        'BRK' => 'Breakfast',
-        'CAN' => 'Candlelight',
-        'CF' => 'Child-Friendly',
-        'C' => 'Closed',
-        'AL-AN' => 'Concurrent with Al-Anon',
-        'AL' => 'Concurrent with Alateen',
-        'XT' => 'Cross Talk Permitted',
-        'DR' => 'Daily Reflections',
-        'DB' => 'Digital Basket',
-        'D' => 'Discussion',
-        'DD' => 'Dual Diagnosis',
-        'EN' => 'English',
-        'FF' => 'Fragrance Free',
-        'FR' => 'French',
-        'G' => 'Gay',
-        'GR' => 'Grapevine',
-        'HE' => 'Hebrew',
-        'NDG' => 'Indigenous',
-        'ITA' => 'Italian',
-        'JA' => 'Japanese',
-        'KOR' => 'Korean',
-        'L' => 'Lesbian',
-        'LGBTQ' => 'LGBTQ',
-        'LIT' => 'Literature',
-        'LS' => 'Living Sober',
-        'TC' => 'Location Temporarily Closed',
-        'MED' => 'Meditation',
-        'M' => 'Men',
-        'N' => 'Native American',
-        'BE' => 'Newcomer',
-        'O' => 'Open',
-        'OUT' => 'Outdoor',
-        'POC' => 'People of Color',
-        'POL' => 'Polish',
-        'POR' => 'Portuguese',
-        'P' => 'Professionals',
-        'PUN' => 'Punjabi',
-        'RUS' => 'Russian',
-        'A' => 'Secular',
-        'SEN' => 'Seniors',
-        'SM' => 'Smoking Permitted',
-        'S' => 'Spanish',
-        'SP' => 'Speaker',
-        'ST' => 'Step Study',
-        'TR' => 'Tradition Study',
-        'T' => 'Transgender',
-        'X' => 'Wheelchair Access',
-        'XB' => 'Wheelchair-Accessible Bathroom',
-        'W' => 'Women',
-        'Y' => 'Young People',
-    ];
+    private static Spec $spec;
 
+    public function __construct()
+    {
+        self::$spec = new Spec();
+    }
 
     public function home()
     {
@@ -108,29 +54,27 @@ class Controller extends BaseController
                 'checked' => true,
             ],
         ];
-        $languages = [
-            'en' => 'English',
-            'es' => 'Español',
-            'fr' => 'Français',
-        ];
+        $languages = self::$spec->getLanguages();
         $group_by = [
             'day-region' => 'Day → Region',
             'day' => 'Day',
             'region-day' => 'Region → Day',
         ];
-        $types = self::$types;
+        $types = self::$spec->getTypesByLanguage('en');
 
         return view('home', compact('fonts', 'modes', 'options', 'languages', 'types', 'group_by', 'json', 'width', 'height', 'numbering'));
     }
 
     public function pdf()
     {
+        // Set to true to preview output as a normal blade template in browser
+        $debug = false;
 
         //parse input
         $json = request('json');
         $width = floatval(request('width', 4.25)) * 72;
         $height = floatval(request('height', 11)) * 72;
-        $font = request('font') === 'sans-serif' ? 'Helvetica' : 'Georgia';
+        $font = request('font') === 'sans-serif' ? 'Noto Sans JP' : 'Zen Old Mincho';
         $numbering = request('numbering', false);
         if ($numbering) $numbering = intval($numbering);
         $language = request('language', 'en');
@@ -138,7 +82,7 @@ class Controller extends BaseController
         $stream = request('mode') === 'stream';
         $options = request('options', []);
         $group_by = request('group_by', 'day-region');
-        $types = self::$types;
+        $types = self::$spec->getTypesByLanguage($language);
 
         //process data
         $strings = [
@@ -147,20 +91,40 @@ class Controller extends BaseController
                 'noon' => 'Noon',
                 'midnight' => 'Midnight',
                 'no_name' => 'Unnamed Meeting',
+                'meeting_types' => 'Meeting Types',
             ],
             'es' => [
                 'days' => ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
                 'noon' => 'Mediodía',
                 'midnight' => 'Doce',
                 'no_name' => 'Reunión sin nombre',
+                'meeting_types' => 'Tipos de reuniones',
             ],
             'fr' => [
                 'days' => ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
                 'noon' => 'Midi',
                 'midnight' => 'Minuit',
                 'no_name' => 'Réunion sans nom',
+                'meeting_types' => 'Types de réunions',
+            ],
+            'ja' => [
+                'days' => ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'],
+                'noon' => 'Midi',
+                'midnight' => 'Minuit',
+                'no_name' => 'Réunion sans nom',
+                'meeting_types' => '会議の種類'
+            ],
+            'sv' => [
+                'days' => ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'],
+                'noon' => 'Middag',
+                'midnight' => 'Midnatt',
+                'no_name' => 'Namnlöst möte',
+                'meeting_types' => 'Mötestyper',
             ],
         ];
+
+        // Set translated Meeting Types heading
+        $meeting_types_heading = $strings[$language]['meeting_types'];
 
         //is it google sheet?
         $googleSheet = Str::startsWith($json, 'https://docs.google.com/spreadsheets/d/');
@@ -216,7 +180,7 @@ class Controller extends BaseController
 
             $header_count = count($headers);
 
-            $type_lookup = array_flip(array_map('strtolower', self::$types));
+            $type_lookup = array_flip(array_map('strtolower', $types));
 
             $meetings = array_map(function ($row) use ($headers, $header_count, $strings, $type_lookup) {
                 $row_count = count($row);
@@ -433,8 +397,13 @@ class Controller extends BaseController
             $days = $meetings->groupBy('day_formatted');
         }
 
+        // Debugging
+        if ($debug) {
+            return view('pdf', compact('days', 'font', 'numbering', 'group_by', 'types_in_use', 'regions', 'types', 'options', 'meeting_types_heading'));
+        }
+
         //output PDF
-        $pdf = PDF::loadView('pdf', compact('days', 'font', 'numbering', 'group_by', 'types_in_use', 'regions', 'types', 'options'))
+        $pdf = PDF::loadView('pdf', compact('days', 'font', 'numbering', 'group_by', 'types_in_use', 'regions', 'types', 'options', 'meeting_types_heading'))
             ->setPaper([0, 0, $width, $height]);
 
         return ($stream) ? $pdf->stream() : $pdf->download('directory.pdf');
