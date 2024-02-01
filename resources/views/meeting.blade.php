@@ -1,4 +1,5 @@
 <table class="meeting">
+    <tbody>
     <tr>
         <td class="time">
             {{ $meeting->time_formatted }}
@@ -23,4 +24,5 @@
             {{ implode(', ', $meeting->types) }}
         </td>
     </tr>
+    </tbody>
 </table>
