@@ -219,7 +219,7 @@ class Controller extends BaseController
 
         // Where $meetings[n]['day'] is an array, create separate values for each day
         foreach ($meetings as $key => $entry) {
-            if (is_array($entry['day'])) {
+            if (isset($entry['day']) && is_array($entry['day'])) {
                 // Remove non zero empty values (NULL, FALSE & '')
                 $days = array_filter($entry['day'], 'strlen');
                 $first = reset($days);
