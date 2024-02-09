@@ -26,7 +26,7 @@
             counter-reset: page {{ $numbering - 1 }};
             font-family: {{ $font }};
             font-size: 12px;
-            line-height: 12px;
+            line-height: .75;
         }
 
         .heading {
@@ -34,7 +34,7 @@
             display: block;
             border-bottom: 0.5px solid black;
             font-size: 16px;
-            line-height: 16px;
+            line-height: .75;
             margin: 0 0 10px;
             padding-bottom: 4px;
         }
@@ -43,7 +43,7 @@
             display: block;
             font-weight: normal;
             font-size: 11px;
-            line-height: 11px;
+            line-height: .75;
             margin: 1px 0 3px;
             page-break-after: avoid;
             text-decoration: underline;
@@ -61,7 +61,7 @@
 
         .legend>div {
             font-size: 9px;
-            line-height: 9px;
+            line-height: .75;
             border-bottom: .5px solid #ddd;
             padding-bottom: 1.5px;
             padding-top: 6px;
