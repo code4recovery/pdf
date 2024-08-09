@@ -263,7 +263,7 @@ class Controller extends BaseController
                 return false;
             }
 
-            //no TC meetings
+            //No Temporarily Closed meetings
             if (in_array('TC', $meeting->types)) {
                 return false;
             }
@@ -358,22 +358,15 @@ class Controller extends BaseController
             sort($meeting->types);
 
             return $meeting;
-        })->sort(function ($a, $b) use ($group_by) {
-
-            //sort meetings by day…
-            if ($a->day !== $b->day) {
-                return $a->day < $b->day ? -1 : 1;
-            }
-
-            if ($group_by === 'day-region' && $a->regions_formatted !== $b->regions_formatted) {
-                return strcmp($a->regions_formatted, $b->regions_formatted);
-            } elseif ($group_by === 'region-day' && $a->regions_formatted !== $b->regions_formatted) {
-                return strcmp($a->regions_formatted, $b->regions_formatted);
-            }
-
-            //…then time
-            return strcmp($a->time, $b->time);
         });
+
+        if ($group_by === 'region-day') {
+            $meetings = $meetings->sortBy([['regions_formatted', 'asc'],['day', 'asc'], ['time', 'asc']]);
+        } elseif ($group_by === 'day-region') {
+            $meetings = $meetings->sortBy([['day', 'asc'],['regions_formatted', 'asc'], ['time', 'asc']]);
+        } else {
+            $meetings = $meetings->sortBy(['day', 'asc'], ['time', 'asc']);
+        }
 
         $types_in_use = array_unique($meetings->pluck('types')->reduce(function ($carry, $item) {
             return is_array($item) ? array_merge($carry, $item) : $carry;
