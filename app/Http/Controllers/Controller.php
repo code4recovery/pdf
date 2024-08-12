@@ -53,6 +53,10 @@ class Controller extends BaseController
                 'label' => 'Page Breaks After Groups',
                 'checked' => true,
             ],
+            'long_address' => [
+                'label' => 'Show Long Address on Every Meeting',
+                'checked' => false,
+            ],
         ];
         $languages = self::$spec->getLanguages();
         $group_by = [
@@ -246,9 +250,29 @@ class Controller extends BaseController
                 $meeting->types = [];
             }
 
-            //full address alias (GSO)
-            if (!empty($meeting->full_address) && empty($meeting->formatted_address)) {
-                $meeting->formatted_address = $meeting->full_address;
+            if (empty($meeting->formatted_address)) {
+                if (!empty($meeting->full_address)) {
+                    //full address alias (GSO)
+                    $meeting->formatted_address = $meeting->full_address;
+                } else {
+                    //try to construct formatted address
+                    $meeting->formatted_address = '';
+                    if (!empty($meeting->address)) {
+                        $meeting->formatted_address .= $meeting->address;
+                    }
+                    if (!empty($meeting->city)) {
+                        $meeting->formatted_address .= ', ' . $meeting->city;
+                    }
+                    if (!empty($meeting->state)) {
+                        $meeting->formatted_address .= ', ' . $meeting->state;
+                    }
+                    if (!empty($meeting->postal_code)) {
+                        $meeting->formatted_address .= ' ' . $meeting->postal_code;
+                    }
+                    if (!empty($meeting->country)) {
+                        $meeting->formatted_address .= ', ' . $meeting->country;
+                    }
+                }
             }
 
             return $meeting;
@@ -287,7 +311,7 @@ class Controller extends BaseController
             }
 
             return true;
-        })->map(function ($meeting) use ($strings, $language, $type, $types) {
+        })->map(function ($meeting) use ($strings, $language, $type, $types, $options) {
 
             //empty meeting name?
             if (empty($meeting->name)) {
@@ -309,8 +333,10 @@ class Controller extends BaseController
             }
 
             //make address
-            if (empty($meeting->address)) {
-                $meeting->address = empty($meeting->formatted_address) ? '' : explode(',', $meeting->formatted_address)[0];
+            if (in_array('long_address', $options)) {
+                $meeting->address = $meeting->formatted_address;
+            } elseif (empty($meeting->address)) {
+                $meeting->address = explode(',', $meeting->formatted_address)[0];
             }
 
             if (
