@@ -74,11 +74,14 @@ class Controller extends BaseController
         // Set to true to preview output as a normal blade template in browser
         $debug = false;
 
+        // Set font based on font choice & language (japanese language gets a different font)
+        $baseFont = 'Noto';
+        $font = $baseFont . (request('font') === 'sans-serif' ? ' Sans' : ' Serif') . (request('language') === 'ja' ? ' JP' : '');
+
         //parse input
         $json = request('json');
         $width = floatval(request('width', 4.25)) * 72;
         $height = floatval(request('height', 11)) * 72;
-        $font = request('font') === 'sans-serif' ? 'Noto Sans JP' : 'Zen Old Mincho';
         $numbering = request('numbering', false);
         if ($numbering) $numbering = intval($numbering);
         $language = request('language', 'en');
@@ -87,6 +90,15 @@ class Controller extends BaseController
         $options = request('options', []);
         $group_by = request('group_by', 'day-region');
         $types = self::$spec->getTypesByLanguage($language);
+
+        // Set PDF filename based on choices
+        $pdf_name = sprintf(
+            '%sx%s_%s-grouped_%s_directory.pdf',
+            str_replace('.', '.', request('width')),
+            str_replace('.', '.', request('height')),
+            $group_by,
+            date('Y-m-d')
+        );
 
         //process data
         $strings = [
@@ -117,6 +129,27 @@ class Controller extends BaseController
                 'midnight' => 'Minuit',
                 'no_name' => 'Réunion sans nom',
                 'meeting_types' => '会議の種類'
+            ],
+            'nl' => [
+                'days' => ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'],
+                'noon' => 'Middag',
+                'midnight' => 'Middernacht',
+                'no_name' => 'Naamloze vergadering',
+                'meeting_types' => 'Soorten vergaderingen',
+            ],
+            'pt' => [
+                'days' => ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'],
+                'noon' => 'Meio dia',
+                'midnight' => 'Meia noite',
+                'no_name' => 'Reunião sem nome',
+                'meeting_types' => 'Tipos de reunião',
+            ],
+            'sk' => [
+                'days' => ['nedeľa', 'pondelok', 'utorok', 'streda', 'štvrtok', 'piatok', 'sobota'],
+                'noon' => 'poludnie',
+                'midnight' => 'Polnoc',
+                'no_name' => 'Nemenované stretnutie',
+                'meeting_types' => 'Typy stretnutí',
             ],
             'sv' => [
                 'days' => ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'],
@@ -416,15 +449,18 @@ class Controller extends BaseController
             $days = $meetings->groupBy('day_formatted');
         }
 
+        // Set variables for view
+        $viewData = compact('language', 'days', 'font', 'numbering', 'group_by', 'types_in_use', 'regions', 'types', 'options', 'meeting_types_heading');
+
         // Debugging
         if ($debug) {
-            return view('pdf', compact('days', 'font', 'numbering', 'group_by', 'types_in_use', 'regions', 'types', 'options', 'meeting_types_heading'));
+            return view('pdf', $viewData);
         }
 
         //output PDF
-        $pdf = PDF::setOption(['isFontSubsettingEnabled' => true, 'isJavascriptEnabled' => false, 'debugLayoutPaddingBox' => false, 'debugLayoutInline' => false, 'debugLayoutBlocks' => false, 'debugLayoutLines' => false])->loadView('pdf', compact('days', 'font', 'numbering', 'group_by', 'types_in_use', 'regions', 'types', 'options', 'meeting_types_heading'))
+        $pdf = PDF::loadView('pdf', $viewData)
             ->setPaper([0, 0, $width, $height]);
 
-        return ($stream) ? $pdf->stream() : $pdf->download('directory.pdf');
+        return ($stream) ? $pdf->stream() : $pdf->download($pdf_name);
     }
 }
