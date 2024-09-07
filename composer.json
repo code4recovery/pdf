@@ -6,7 +6,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2.0",
-        "barryvdh/laravel-dompdf": "^2.1.1",
+        "barryvdh/laravel-dompdf": "^3.0",
         "code4recovery/spec": "^1.1",
         "guzzlehttp/guzzle": "^7.6.1",
         "laravel/framework": "^10.0",
