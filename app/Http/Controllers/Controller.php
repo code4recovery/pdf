@@ -424,7 +424,7 @@ class Controller extends BaseController
         } elseif ($group_by === 'day-region') {
             $meetings = $meetings->sortBy([['day', 'asc'],['regions_formatted', 'asc'], ['time', 'asc']]);
         } else {
-            $meetings = $meetings->sortBy(['day', 'asc'], ['time', 'asc']);
+            $meetings = $meetings->sortBy([['day', 'asc'], ['time', 'asc']]);
         }
 
         $types_in_use = array_unique($meetings->pluck('types')->reduce(function ($carry, $item) {
