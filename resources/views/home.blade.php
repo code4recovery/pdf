@@ -83,6 +83,14 @@
                                 </label>
                             </div>
                         @endforeach
+                        <label for="font_size" class="form-label fw-bold mt-4">Font Size</label>
+                        <select name="font_size" id="font_size" class="form-select">
+                            @for ($i = 8; $i <= 12; $i++)
+                                <option value="{{ $i }}" {{ old('font_size', 12) == $i ? 'selected' : '' }}>
+                                    {{ $i }} px
+                                </option>
+                            @endfor
+                        </select>
                     </div>
                     <div class="col-md-6 mb-4">
                         <label class="form-label fw-bold">Group by</label>

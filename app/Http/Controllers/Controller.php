@@ -40,6 +40,9 @@ class Controller extends BaseController
             'sans-serif' => 'Sans Serif',
             'serif' => 'Serif',
         ];
+
+        $font_sizes = range(8, 12);  // Default font size is 12 if none is provided
+        
         $modes = [
             'download' => 'Download',
             'stream' => 'Stream',
@@ -66,7 +69,7 @@ class Controller extends BaseController
         ];
         $types = self::$spec->getTypesByLanguage('en');
 
-        return view('home', compact('fonts', 'modes', 'options', 'languages', 'types', 'group_by', 'json', 'width', 'height', 'numbering'));
+        return view('home', compact('fonts', 'font_sizes', 'modes', 'options', 'languages', 'types', 'group_by', 'json', 'width', 'height', 'numbering'));
     }
 
     public function pdf()
@@ -77,6 +80,7 @@ class Controller extends BaseController
         // Set font based on font choice & language (japanese language gets a different font)
         $baseFont = 'Noto';
         $font = $baseFont . (request('font') === 'sans-serif' ? ' Sans' : ' Serif') . (request('language') === 'ja' ? ' JP' : '');
+        $font_size = request('font_size', 12);  // Default font size is 12 if none is provided
 
         //parse input
         $json = request('json');
@@ -450,7 +454,7 @@ class Controller extends BaseController
         }
 
         // Set variables for view
-        $viewData = compact('language', 'days', 'font', 'numbering', 'group_by', 'types_in_use', 'regions', 'types', 'options', 'meeting_types_heading');
+        $viewData = compact('language', 'days', 'font', 'font_size', 'numbering', 'group_by', 'types_in_use', 'regions', 'types', 'options', 'meeting_types_heading');
 
         // Debugging
         if ($debug) {

@@ -25,7 +25,7 @@
             counter-increment: page 1;
             counter-reset: page {{ $numbering - 1 }};
             font-family: {{ $font }};
-            font-size: 12px;
+            font-size: {{ $font_size }}px;
             line-height: .75;
         }
 
@@ -33,7 +33,7 @@
             font-weight: bold;
             display: block;
             border-bottom: 0.5px solid black;
-            font-size: 16px;
+            font-size: {{ $font_size + 4 }}px;
             line-height: .75;
             margin: 0 0 10px;
             padding-bottom: 4px;
@@ -42,7 +42,7 @@
         .subheading {
             display: block;
             font-weight: normal;
-            font-size: 11px;
+            font-size: {{ $font_size - 1 }}px;
             line-height: .75;
             margin: 1px 0 3px;
             page-break-after: avoid;
