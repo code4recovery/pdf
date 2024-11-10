@@ -41,8 +41,8 @@ class Controller extends BaseController
             'serif' => 'Serif',
         ];
 
-        $font_sizes = range(8, 12);  // Default font size is 12 if none is provided
-        
+        $font_sizes = array_combine(range(8, 12), array_map(fn($i) => "{$i} px", range(8, 12)));
+
         $modes = [
             'download' => 'Download',
             'stream' => 'Stream',
