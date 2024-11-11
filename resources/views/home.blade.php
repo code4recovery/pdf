@@ -83,6 +83,8 @@
                                 </label>
                             </div>
                         @endforeach
+                        <label for="font_size" class="form-label fw-bold mt-4">Font Size</label>
+                        {{ html()->select('font_size', $font_sizes, old('font_size') ?? '12')->id('font_size')->class('form-select') }}
                     </div>
                     <div class="col-md-6 mb-4">
                         <label class="form-label fw-bold">Group by</label>
