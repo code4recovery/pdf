@@ -9,17 +9,17 @@
         "barryvdh/laravel-dompdf": "^3.0",
         "code4recovery/spec": "^1.1",
         "guzzlehttp/guzzle": "^7.6.1",
-        "laravel/framework": "^10.0",
-        "laravel/sanctum": "^3.2",
+        "laravel/framework": "^11.0",
+        "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.8.1",
-        "sentry/sentry-laravel": "^3.4.0",
+        "sentry/sentry-laravel": "^4.0",
         "spatie/laravel-html": "^3.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.22.0",
         "laravel/sail": "^1.22.0",
         "mockery/mockery": "^1.5.1",
-        "nunomaduro/collision": "^7.0",
+        "nunomaduro/collision": "^8.1",
         "phpunit/phpunit": "^10.0",
         "spatie/laravel-ignition": "^2.0"
     },
