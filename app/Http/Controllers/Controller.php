@@ -424,11 +424,16 @@ class Controller extends BaseController
         });
 
         if ($group_by === 'region-day') {
-            $meetings = $meetings->sortBy([['regions_formatted', 'asc'],['day', 'asc'], ['time', 'asc']]);
+            $meetings = $meetings->sortBy('time')
+                ->sortBy('day')
+                ->sortBy('regions_formatted', SORT_NATURAL | SORT_FLAG_CASE);
         } elseif ($group_by === 'day-region') {
-            $meetings = $meetings->sortBy([['day', 'asc'],['regions_formatted', 'asc'], ['time', 'asc']]);
+            $meetings = $meetings->sortBy('time')
+                ->sortBy('regions_formatted', SORT_NATURAL | SORT_FLAG_CASE)
+                ->sortBy('day');
         } else {
-            $meetings = $meetings->sortBy([['day', 'asc'], ['time', 'asc']]);
+            $meetings = $meetings->sortBy('time')
+                ->sortBy('day');
         }
 
         $types_in_use = array_unique($meetings->pluck('types')->reduce(function ($carry, $item) {
