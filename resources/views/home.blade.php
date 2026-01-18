@@ -24,106 +24,159 @@
     <main class="container-md my-5">
         <div class="row">
             <div class="col-md-6 offset-md-3">
-                {{ html()->form('GET', '/pdf')->attribute('accept-charset', 'UTF-8')->open() }}
                 <h1>PDF Generator</h1>
                 <p class="lead">
                     This service creates inside pages for a printed meeting schedule
                     from a Meeting Guide JSON feed or Google Sheet.
                 </p>
-                @if (session('error'))
+
+                @if (isset($error) || session('error'))
                     <p class="alert alert-danger">
-                        {{ session('error') }}
+                        {{ $error ?? session('error') }}
                     </p>
                 @endif
-                <div class="row">
-                    <div class="col-12 mb-4">
+
+                @if ($screen === 1)
+                    {{-- Screen 1: Just URL input --}}
+                    {{ html()->form('GET', '/')->attribute('accept-charset', 'UTF-8')->open() }}
+                    <div class="mb-4">
                         <label class="form-label fw-bold" for="json">
                             Feed or Sheet URL
                         </label>
-                        {{ html()->input('url', 'json', old('json', $json))->required()->id('json')->class('form-control') }}
+                        {{ html()->input('url', 'json', old('json'))->required()->id('json')->class('form-control')->placeholder('https://example.org/wp-admin/admin-ajax.php?action=meetings') }}
+                        <div class="form-text">
+                            Enter a Meeting Guide JSON feed URL or Google Sheets URL to continue.
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <label for="width" class="form-label fw-bold">Width</label>
-                        {{ html()->number('width', old('width', $width), )->attribute('step', '0.01')->required()->id('width')->class('form-control') }}
+                    <div class="text-center my-4">
+                        {{ html()->submit('Continue')->class('btn btn-primary btn-lg px-4') }}
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <label for="height" class="form-label fw-bold">
-                            Height
-                        </label>
-                        {{ html()->number('height', old('height', $height), )->attribute('step', '0.01')->required()->id('height')->class('form-control') }}
+                    {{ html()->form()->close() }}
+                @else
+                    {{-- Screen 2: Full form with regions --}}
+                    {{ html()->form('GET', '/pdf')->attribute('accept-charset', 'UTF-8')->open() }}
+                    {{ html()->hidden('json', $json) }}
+
+                    <div class="mb-3">
+                        <a href="/" class="btn btn-outline-secondary btn-sm">&larr; Change URL</a>
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <label for="numbering" class="form-label fw-bold">
-                            Start #
-                        </label>
-                        {{ html()->number('numbering', old('numbering', $numbering), )->id('numbering')->class('form-control') }}
-                    </div>
-                    <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold" for="type">Type</label>
-                        {{ html()->select('type', ['' => 'Any Type'] + $types, old('type', ''))->id('type')->class('form-select') }}
-                    </div>
-                    <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Language</label>
-                        @foreach ($languages as $language => $label)
-                            <div class="form-check">
-                                {{ html()->radio('language', $language === old('language', 'en'), $language)->id('language-' . $language)->class('form-check-input') }}
-                                <label class="form-check-label" for="language-{{ $language }}">
-                                    {{ $label }}
-                                </label>
+
+                    {{-- Region selection --}}
+                    @if (!empty($availableRegions))
+                        <div class="card mb-4">
+                            <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+                                <span>Regions</span>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAllRegions(true)">Select All</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAllRegions(false)">Deselect All</button>
+                                </div>
                             </div>
-                        @endforeach
-                    </div>
-                    <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Font</label>
-                        @foreach ($fonts as $font => $label)
-                            <div class="form-check">
-                                {{ html()->radio('font', $font === old('font', 'sans-serif'), $font)->id('font-' . $font)->class('form-check-input') }}
-                                <label class="form-check-label" for="font-{{ $font }}">
-                                    {{ $label }}
-                                </label>
+                            <div class="card-body" style="max-height: 250px; overflow-y: auto;">
+                                @foreach ($availableRegions as $region)
+                                    <div class="form-check">
+                                        {{ html()->checkbox('regions[]', true, $region)->id('region-' . Str::slug($region ?: 'no-region'))->class('form-check-input region-checkbox') }}
+                                        <label class="form-check-label" for="region-{{ Str::slug($region ?: 'no-region') }}">
+                                            {{ $region ?: '(No Region)' }}
+                                        </label>
+                                    </div>
+                                @endforeach
                             </div>
-                        @endforeach
-                        <label for="font_size" class="form-label fw-bold mt-4">Font Size</label>
-                        {{ html()->select('font_size', $font_sizes, old('font_size') ?? '12')->id('font_size')->class('form-select') }}
+                        </div>
+                    @endif
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label for="width" class="form-label fw-bold">Width</label>
+                            {{ html()->number('width', old('width', $width))->attribute('step', '0.01')->required()->id('width')->class('form-control') }}
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="height" class="form-label fw-bold">
+                                Height
+                            </label>
+                            {{ html()->number('height', old('height', $height))->attribute('step', '0.01')->required()->id('height')->class('form-control') }}
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="numbering" class="form-label fw-bold">
+                                Start #
+                            </label>
+                            {{ html()->number('numbering', old('numbering', $numbering))->id('numbering')->class('form-control') }}
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold" for="type">Type</label>
+                            {{ html()->select('type', ['' => 'Any Type'] + $types, old('type', ''))->id('type')->class('form-select') }}
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Language</label>
+                            @foreach ($languages as $language => $label)
+                                <div class="form-check">
+                                    {{ html()->radio('language', $language === old('language', 'en'), $language)->id('language-' . $language)->class('form-check-input') }}
+                                    <label class="form-check-label" for="language-{{ $language }}">
+                                        {{ $label }}
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Font</label>
+                            @foreach ($fonts as $font => $label)
+                                <div class="form-check">
+                                    {{ html()->radio('font', $font === old('font', 'sans-serif'), $font)->id('font-' . $font)->class('form-check-input') }}
+                                    <label class="form-check-label" for="font-{{ $font }}">
+                                        {{ $label }}
+                                    </label>
+                                </div>
+                            @endforeach
+                            <label for="font_size" class="form-label fw-bold mt-4">Font Size</label>
+                            {{ html()->select('font_size', $font_sizes, old('font_size') ?? '12')->id('font_size')->class('form-select') }}
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Group by</label>
+                            @foreach ($group_by as $group => $label)
+                                <div class="form-check-label" class="form-check">
+                                    {{ html()->radio('group_by', $group === old('group_by', 'day-region'), $group)->id('group_by-' . $group)->class('form-check-input') }}
+                                    <label for="group_by-{{ $group }}">
+                                        {{ $label }}
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Mode</label>
+                            @foreach ($modes as $mode => $label)
+                                <div class="form-check">
+                                    {{ html()->radio('mode', $mode === old('mode', 'download'), $mode)->id('mode-' . $mode)->class('form-check-input') }}
+                                    <label class="form-check-label" for="mode-{{ $mode }}">
+                                        {{ $label }}
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Options</label>
+                            @foreach ($options as $optionkey => $option)
+                                <div class="form-check">
+                                    {{ html()->checkbox('options[]', in_array($optionkey, old('options', [])), $optionkey)->id('option-' . $optionkey)->class('form-check-input')->checked($option['checked']) }}
+                                    <label class="form-check-label" for="option-{{ $optionkey }}">
+                                        {{ $option['label'] }}
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="col-12 text-center my-4">
+                            {{ html()->submit('Generate')->class('btn btn-primary btn-lg px-4') }}
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Group by</label>
-                        @foreach ($group_by as $group => $label)
-                            <div class="form-check-label" class="form-check">
-                                {{ html()->radio('group_by', $group === old('group_by', 'day-region'), $group)->id('group_by-' . $group)->class('form-check-input') }}
-                                <label for="group_by-{{ $group }}">
-                                    {{ $label }}
-                                </label>
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Mode</label>
-                        @foreach ($modes as $mode => $label)
-                            <div class="form-check">
-                                {{ html()->radio('mode', $mode === old('mode', 'download'), $mode)->id('mode-' . $mode)->class('form-check-input') }}
-                                <label class="form-check-label" for="mode-{{ $mode }}">
-                                    {{ $label }}
-                                </label>
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Options</label>
-                        @foreach ($options as $optionkey => $option)
-                            <div class="form-check">
-                                {{ html()->checkbox('options[]', in_array($optionkey, old('options', [])), $optionkey)->id('option-' . $optionkey)->class('form-check-input')->checked($option['checked']) }}
-                                <label class="form-check-label" for="option-{{ $optionkey }}">
-                                    {{ $option['label'] }}
-                                </label>
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="col-12 text-center my-4">
-                        {{ html()->submit('Generate')->class('btn btn-primary btn-lg px-4') }}
-                    </div>
-                </div>
-                {{ html()->form()->close() }}
+                    {{ html()->form()->close() }}
+
+                    <script>
+                        function toggleAllRegions(checked) {
+                            document.querySelectorAll('.region-checkbox').forEach(function(checkbox) {
+                                checkbox.checked = checked;
+                            });
+                        }
+                    </script>
+                @endif
+
                 <p class="mb-4 mt-5">
                     More information is available on the
                     <a href="https://github.com/code4recovery/pdf" target="_blank">
