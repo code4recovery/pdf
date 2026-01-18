@@ -60,6 +60,10 @@ class Controller extends BaseController
                 'label' => 'Show Long Address on Every Meeting',
                 'checked' => false,
             ],
+            'time_24hr' => [
+                'label' => '24-Hour Time Format',
+                'checked' => false,
+            ],
         ];
         $languages = self::$spec->getLanguages();
         $group_by = [
@@ -371,15 +375,21 @@ class Controller extends BaseController
             //make day weekday
             $meeting->day_formatted = $strings[$language]['days'][$meeting->day];
 
-            //make time carbon
+            //format time (24-hour or 12-hour)
+            $use24hr = in_array('time_24hr', $options);
+
             if ($meeting->time === '12:00') {
-                $meeting->time_formatted = $strings[$language]['noon'];
+                $meeting->time_formatted = $use24hr ? '12:00' : $strings[$language]['noon'];
             } elseif ($meeting->time === '00:00' || $meeting->time === '23:59') {
-                $meeting->time_formatted = $strings[$language]['midnight'];
+                $meeting->time_formatted = $use24hr ? '00:00' : $strings[$language]['midnight'];
             } elseif (substr($meeting->time, -3) === ':00') {
-                $meeting->time_formatted = date('g a', strtotime($meeting->time));
+                $meeting->time_formatted = $use24hr
+                    ? date('H:i', strtotime($meeting->time))
+                    : date('g a', strtotime($meeting->time));
             } else {
-                $meeting->time_formatted = date('g:i a', strtotime($meeting->time));
+                $meeting->time_formatted = $use24hr
+                    ? date('H:i', strtotime($meeting->time))
+                    : date('g:i a', strtotime($meeting->time));
             }
 
             //make address
