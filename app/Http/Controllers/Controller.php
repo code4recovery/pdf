@@ -77,9 +77,15 @@ class Controller extends BaseController
         // Set to true to preview output as a normal blade template in browser
         $debug = false;
 
-        // Set font based on font choice & language (japanese language gets a different font)
+        // Set font based on font choice & language (CJK languages need different fonts)
         $baseFont = 'Noto';
-        $font = $baseFont . (request('font') === 'sans-serif' ? ' Sans' : ' Serif') . (request('language') === 'ja' ? ' JP' : '');
+        $fontStyle = request('font') === 'sans-serif' ? ' Sans' : ' Serif';
+        $fontSuffix = match (request('language')) {
+            'ja' => ' JP',
+            'th' => ' Thai',
+            default => '',
+        };
+        $font = $baseFont . $fontStyle . $fontSuffix;
         $font_size = request('font_size', 12);  // Default font size is 12 if none is provided
 
         //parse input
@@ -162,6 +168,13 @@ class Controller extends BaseController
                 'no_name' => 'Namnlöst möte',
                 'meeting_types' => 'Mötestyper',
             ],
+            'th' => [
+                'days' => ['วันอาทิตย์', 'วันจันทร์', 'วันอังคาร', 'วันพุธ', 'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์'],
+                'noon' => 'เที่ยงวัน',
+                'midnight' => 'เที่ยงคืน',
+                'no_name' => 'ประชุมที่ไม่มีชื่อ',
+                'meeting_types' => 'ประเภทการประชุม',
+            ]
         ];
 
         // Set translated Meeting Types heading
