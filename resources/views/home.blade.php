@@ -61,29 +61,6 @@
                         <a href="/" class="btn btn-outline-secondary btn-sm">&larr; Change URL</a>
                     </div>
 
-                    {{-- Region selection --}}
-                    @if (!empty($availableRegions))
-                        <div class="card mb-4">
-                            <div class="card-header fw-bold d-flex justify-content-between align-items-center">
-                                <span>Regions</span>
-                                <div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAllRegions(true)">Select All</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAllRegions(false)">Deselect All</button>
-                                </div>
-                            </div>
-                            <div class="card-body" style="max-height: 250px; overflow-y: auto;">
-                                @foreach ($availableRegions as $region)
-                                    <div class="form-check">
-                                        {{ html()->checkbox('regions[]', true, $region)->id('region-' . Str::slug($region ?: 'no-region'))->class('form-check-input region-checkbox') }}
-                                        <label class="form-check-label" for="region-{{ Str::slug($region ?: 'no-region') }}">
-                                            {{ $region ?: '(No Region)' }}
-                                        </label>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-
                     <div class="row">
                         <div class="col-md-6 mb-4">
                             <label for="width" class="form-label fw-bold">Width</label>
@@ -162,18 +139,55 @@
                                 </div>
                             @endforeach
                         </div>
+                        {{-- Region selection (collapsible) --}}
+                        @if (!empty($availableRegions))
+                            <div class="col-12 mb-4">
+                                <button class="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#regionsCollapse" aria-expanded="false" aria-controls="regionsCollapse">
+                                    <span>Filter by Regions</span>
+                                    <span class="collapse-icon" style="transition: transform 0.2s ease;">&#9662;</span>
+                                </button>
+                                <div class="collapse" id="regionsCollapse">
+                                    <div class="card card-body mt-2">
+                                        <div class="d-flex justify-content-end mb-2">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="toggleAllRegions(true)">Select All</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAllRegions(false)">Deselect All</button>
+                                        </div>
+                                        <div style="max-height: 250px; overflow-y: auto;">
+                                            @foreach ($availableRegions as $region)
+                                                <div class="form-check">
+                                                    {{ html()->checkbox('regions[]', true, $region)->id('region-' . Str::slug($region ?: 'no-region'))->class('form-check-input region-checkbox') }}
+                                                    <label class="form-check-label" for="region-{{ Str::slug($region ?: 'no-region') }}">
+                                                        {{ $region ?: '(No Region)' }}
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
                         <div class="col-12 text-center my-4">
                             {{ html()->submit('Generate')->class('btn btn-primary btn-lg px-4') }}
                         </div>
                     </div>
                     {{ html()->form()->close() }}
 
+                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
                     <script>
                         function toggleAllRegions(checked) {
                             document.querySelectorAll('.region-checkbox').forEach(function(checkbox) {
                                 checkbox.checked = checked;
                             });
                         }
+
+                        // Rotate arrow icon when collapse state changes
+                        document.getElementById('regionsCollapse')?.addEventListener('show.bs.collapse', function () {
+                            document.querySelector('.collapse-icon').style.transform = 'rotate(180deg)';
+                        });
+                        document.getElementById('regionsCollapse')?.addEventListener('hide.bs.collapse', function () {
+                            document.querySelector('.collapse-icon').style.transform = 'rotate(0deg)';
+                        });
                     </script>
                 @endif
 
