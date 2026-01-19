@@ -153,11 +153,28 @@
                                             <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAllRegions(false)">Deselect All</button>
                                         </div>
                                         <div style="max-height: 250px; overflow-y: auto;">
-                                            @foreach ($availableRegions as $region)
-                                                <div class="form-check">
-                                                    {{ html()->checkbox('regions[]', true, $region)->id('region-' . Str::slug($region ?: 'no-region'))->class('form-check-input region-checkbox') }}
-                                                    <label class="form-check-label" for="region-{{ Str::slug($region ?: 'no-region') }}">
-                                                        {{ $region ?: '(No Region)' }}
+                                            @php
+                                                // Build hierarchy from flat region list
+                                                $regionTree = [];
+                                                $existingPrefixes = array_flip($availableRegions);
+                                                foreach ($availableRegions as $region) {
+                                                    $parts = $region ? array_map('trim', explode(':', $region)) : [''];
+                                                    $depth = count($parts) - 1;
+                                                    // Show leaf name only if parent exists, otherwise show full path
+                                                    $parentPath = $depth > 0 ? implode(': ', array_slice($parts, 0, -1)) : null;
+                                                    $hasParent = $parentPath && isset($existingPrefixes[$parentPath]);
+                                                    $regionTree[] = [
+                                                        'full' => $region,
+                                                        'depth' => $depth,
+                                                        'label' => $hasParent ? end($parts) : ($region ?: '(No Region)'),
+                                                    ];
+                                                }
+                                            @endphp
+                                            @foreach ($regionTree as $region)
+                                                <div class="form-check" style="margin-left: {{ $region['depth'] * 1.25 }}rem;">
+                                                    {{ html()->checkbox('regions[]', true, $region['full'])->id('region-' . Str::slug($region['full'] ?: 'no-region'))->class('form-check-input region-checkbox') }}
+                                                    <label class="form-check-label" for="region-{{ Str::slug($region['full'] ?: 'no-region') }}">
+                                                        {{ $region['label'] }}
                                                     </label>
                                                 </div>
                                             @endforeach
