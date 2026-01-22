@@ -156,23 +156,19 @@
                                             @php
                                                 // Build hierarchy from flat region list
                                                 $regionTree = [];
-                                                $existingPrefixes = array_flip($availableRegions);
                                                 foreach ($availableRegions as $region) {
                                                     $parts = $region ? array_map('trim', explode(':', $region)) : [''];
                                                     $depth = count($parts) - 1;
-                                                    // Show leaf name only if parent exists, otherwise show full path
-                                                    $parentPath = $depth > 0 ? implode(': ', array_slice($parts, 0, -1)) : null;
-                                                    $hasParent = $parentPath && isset($existingPrefixes[$parentPath]);
                                                     $regionTree[] = [
                                                         'full' => $region,
                                                         'depth' => $depth,
-                                                        'label' => $hasParent ? end($parts) : ($region ?: '(No Region)'),
+                                                        'label' => end($parts) ?: '(No Region)',
                                                     ];
                                                 }
                                             @endphp
                                             @foreach ($regionTree as $region)
                                                 <div class="form-check" style="margin-left: {{ $region['depth'] * 1.25 }}rem;">
-                                                    {{ html()->checkbox('regions[]', true, $region['full'])->id('region-' . Str::slug($region['full'] ?: 'no-region'))->class('form-check-input region-checkbox') }}
+                                                    {{ html()->checkbox('regions[]', true, $region['full'])->id('region-' . Str::slug($region['full'] ?: 'no-region'))->class('form-check-input region-checkbox')->attribute('data-region-path', $region['full']) }}
                                                     <label class="form-check-label" for="region-{{ Str::slug($region['full'] ?: 'no-region') }}">
                                                         {{ $region['label'] }}
                                                     </label>
@@ -195,8 +191,77 @@
                         function toggleAllRegions(checked) {
                             document.querySelectorAll('.region-checkbox').forEach(function(checkbox) {
                                 checkbox.checked = checked;
+                                checkbox.indeterminate = false;
                             });
                         }
+
+                        // Cascade selection: toggling a parent affects all children
+                        document.querySelectorAll('.region-checkbox').forEach(function(checkbox) {
+                            checkbox.addEventListener('change', function() {
+                                const path = this.dataset.regionPath;
+                                const prefix = path + ': ';
+
+                                // Toggle all children (regions that start with this path + ': ')
+                                document.querySelectorAll('.region-checkbox').forEach(function(child) {
+                                    if (child.dataset.regionPath.startsWith(prefix)) {
+                                        child.checked = checkbox.checked;
+                                        child.indeterminate = false;
+                                    }
+                                });
+
+                                // Update parent states
+                                updateParentStates();
+                            });
+                        });
+
+                        function updateParentStates() {
+                            // Process from deepest to shallowest
+                            const checkboxes = Array.from(document.querySelectorAll('.region-checkbox'));
+                            const byDepth = {};
+
+                            checkboxes.forEach(function(cb) {
+                                const depth = (cb.dataset.regionPath.match(/: /g) || []).length;
+                                if (!byDepth[depth]) byDepth[depth] = [];
+                                byDepth[depth].push(cb);
+                            });
+
+                            const depths = Object.keys(byDepth).map(Number).sort((a, b) => b - a);
+
+                            depths.forEach(function(depth) {
+                                if (depth === 0) return; // Top-level has no parent
+
+                                byDepth[depth].forEach(function(cb) {
+                                    const path = cb.dataset.regionPath;
+                                    const parentPath = path.substring(0, path.lastIndexOf(': '));
+                                    const parent = checkboxes.find(p => p.dataset.regionPath === parentPath);
+
+                                    if (parent) {
+                                        const prefix = parentPath + ': ';
+                                        const children = checkboxes.filter(c => {
+                                            const cPath = c.dataset.regionPath;
+                                            return cPath.startsWith(prefix) && !cPath.substring(prefix.length).includes(': ');
+                                        });
+
+                                        const checkedCount = children.filter(c => c.checked).length;
+                                        const indeterminateCount = children.filter(c => c.indeterminate).length;
+
+                                        if (checkedCount === 0 && indeterminateCount === 0) {
+                                            parent.checked = false;
+                                            parent.indeterminate = false;
+                                        } else if (checkedCount === children.length && indeterminateCount === 0) {
+                                            parent.checked = true;
+                                            parent.indeterminate = false;
+                                        } else {
+                                            parent.checked = false;
+                                            parent.indeterminate = true;
+                                        }
+                                    }
+                                });
+                            });
+                        }
+
+                        // Initialize parent states on page load
+                        updateParentStates();
 
                         // Rotate arrow icon when collapse state changes
                         document.getElementById('regionsCollapse')?.addEventListener('show.bs.collapse', function () {

@@ -156,27 +156,27 @@ class Controller extends BaseController
         foreach ($meetings as $meeting) {
             $meeting = (object) $meeting;
 
-            // Apply same region formatting logic used in pdf()
+            // Build region path from regions array (ordered parent to child)
             if (!empty($meeting->regions)) {
                 if (is_string($meeting->regions)) {
                     $meeting->regions = array_map('trim', explode('>', $meeting->regions));
                 }
-                $regions_formatted = implode(': ', $meeting->regions);
-            } elseif (!empty($meeting->region)) {
-                $regions_formatted = $meeting->region;
-                if (!empty($meeting->sub_region)) {
-                    $regions_formatted .= ': ' . $meeting->sub_region;
+
+                // Add each level of the hierarchy so parent nodes exist in the tree
+                $path = [];
+                foreach ($meeting->regions as $part) {
+                    $path[] = $part;
+                    $regions[implode(': ', $path)] = true;
                 }
             } elseif (!empty($meeting->city)) {
                 $regions_formatted = $meeting->city;
                 if (!empty($meeting->state)) {
                     $regions_formatted .= ', ' . $meeting->state;
                 }
+                $regions[$regions_formatted] = true;
             } else {
-                $regions_formatted = '';
+                $regions[''] = true;
             }
-
-            $regions[$regions_formatted] = true;
         }
 
         $regionList = array_keys($regions);
@@ -596,11 +596,6 @@ class Controller extends BaseController
                     $meeting->regions = array_map('trim', explode('>', $meeting->regions));
                 }
                 $meeting->regions_formatted = implode(': ', $meeting->regions);
-            } elseif (!empty($meeting->region)) {
-                $meeting->regions_formatted = $meeting->region;
-                if (!empty($meeting->sub_region)) {
-                    $meeting->regions_formatted .= ': ' . $meeting->sub_region;
-                }
             } elseif (!empty($meeting->city)) {
                 $meeting->regions_formatted = $meeting->city;
                 if (!empty($meeting->state)) {
@@ -630,10 +625,19 @@ class Controller extends BaseController
         });
 
         // Filter by selected regions (if provided)
+        // Selecting a parent region includes all sub-regions
         $selectedRegions = request('regions', []);
         if (!empty($selectedRegions)) {
             $meetings = $meetings->filter(function ($meeting) use ($selectedRegions) {
-                return in_array($meeting->regions_formatted, $selectedRegions);
+                foreach ($selectedRegions as $selected) {
+                    // Exact match or is a sub-region (starts with selected + ': ')
+                    if ($meeting->regions_formatted === $selected ||
+                        str_starts_with($meeting->regions_formatted, $selected . ': ')) {
+                        return true;
+                    }
+                }
+
+                return false;
             });
         }
 
