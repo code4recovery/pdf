@@ -24,106 +24,255 @@
     <main class="container-md my-5">
         <div class="row">
             <div class="col-md-6 offset-md-3">
-                {{ html()->form('GET', '/pdf')->attribute('accept-charset', 'UTF-8')->open() }}
                 <h1>PDF Generator</h1>
                 <p class="lead">
                     This service creates inside pages for a printed meeting schedule
                     from a Meeting Guide JSON feed or Google Sheet.
                 </p>
-                @if (session('error'))
+
+                @if (isset($error) || session('error'))
                     <p class="alert alert-danger">
-                        {{ session('error') }}
+                        {{ $error ?? session('error') }}
                     </p>
                 @endif
-                <div class="row">
-                    <div class="col-12 mb-4">
+
+                @if ($screen === 1)
+                    {{-- Screen 1: Just URL input --}}
+                    {{ html()->form('GET', '/')->attribute('accept-charset', 'UTF-8')->open() }}
+                    <div class="mb-4">
                         <label class="form-label fw-bold" for="json">
                             Feed or Sheet URL
                         </label>
-                        {{ html()->input('url', 'json', old('json', $json))->required()->id('json')->class('form-control') }}
+                        {{ html()->input('url', 'json', old('json'))->required()->id('json')->class('form-control')->placeholder('https://example.org/wp-admin/admin-ajax.php?action=meetings') }}
+                        <div class="form-text">
+                            Enter a Meeting Guide JSON feed URL or Google Sheets URL to continue.
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <label for="width" class="form-label fw-bold">Width</label>
-                        {{ html()->number('width', old('width', $width), )->attribute('step', '0.01')->required()->id('width')->class('form-control') }}
+                    <div class="text-center my-4">
+                        {{ html()->submit('Continue')->class('btn btn-primary btn-lg px-4') }}
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <label for="height" class="form-label fw-bold">
-                            Height
-                        </label>
-                        {{ html()->number('height', old('height', $height), )->attribute('step', '0.01')->required()->id('height')->class('form-control') }}
+                    {{ html()->form()->close() }}
+                @else
+                    {{-- Screen 2: Full form with regions --}}
+                    {{ html()->form('GET', '/pdf')->attribute('accept-charset', 'UTF-8')->open() }}
+                    {{ html()->hidden('json', $json) }}
+
+                    <div class="mb-3">
+                        <a href="/" class="btn btn-outline-secondary btn-sm">&larr; Change URL</a>
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <label for="numbering" class="form-label fw-bold">
-                            Start #
-                        </label>
-                        {{ html()->number('numbering', old('numbering', $numbering), )->id('numbering')->class('form-control') }}
-                    </div>
-                    <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold" for="type">Type</label>
-                        {{ html()->select('type', ['' => 'Any Type'] + $types, old('type', ''))->id('type')->class('form-select') }}
-                    </div>
-                    <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Language</label>
-                        @foreach ($languages as $language => $label)
-                            <div class="form-check">
-                                {{ html()->radio('language', $language === old('language', 'en'), $language)->id('language-' . $language)->class('form-check-input') }}
-                                <label class="form-check-label" for="language-{{ $language }}">
-                                    {{ $label }}
-                                </label>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label for="width" class="form-label fw-bold">Width</label>
+                            {{ html()->number('width', old('width', $width))->attribute('step', '0.01')->required()->id('width')->class('form-control') }}
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="height" class="form-label fw-bold">
+                                Height
+                            </label>
+                            {{ html()->number('height', old('height', $height))->attribute('step', '0.01')->required()->id('height')->class('form-control') }}
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="numbering" class="form-label fw-bold">
+                                Start #
+                            </label>
+                            {{ html()->number('numbering', old('numbering', $numbering))->id('numbering')->class('form-control') }}
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold" for="type">Type</label>
+                            {{ html()->select('type', ['' => 'Any Type'] + $types, old('type', ''))->id('type')->class('form-select') }}
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Language</label>
+                            @foreach ($languages as $language => $label)
+                                <div class="form-check">
+                                    {{ html()->radio('language', $language === old('language', 'en'), $language)->id('language-' . $language)->class('form-check-input') }}
+                                    <label class="form-check-label" for="language-{{ $language }}">
+                                        {{ $label }}
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Font</label>
+                            @foreach ($fonts as $font => $label)
+                                <div class="form-check">
+                                    {{ html()->radio('font', $font === old('font', 'sans-serif'), $font)->id('font-' . $font)->class('form-check-input') }}
+                                    <label class="form-check-label" for="font-{{ $font }}">
+                                        {{ $label }}
+                                    </label>
+                                </div>
+                            @endforeach
+                            <label for="font_size" class="form-label fw-bold mt-4">Font Size</label>
+                            {{ html()->select('font_size', $font_sizes, old('font_size') ?? '12')->id('font_size')->class('form-select') }}
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Group by</label>
+                            @foreach ($group_by as $group => $label)
+                                <div class="form-check-label" class="form-check">
+                                    {{ html()->radio('group_by', $group === old('group_by', 'day-region'), $group)->id('group_by-' . $group)->class('form-check-input') }}
+                                    <label for="group_by-{{ $group }}">
+                                        {{ $label }}
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Mode</label>
+                            @foreach ($modes as $mode => $label)
+                                <div class="form-check">
+                                    {{ html()->radio('mode', $mode === old('mode', 'download'), $mode)->id('mode-' . $mode)->class('form-check-input') }}
+                                    <label class="form-check-label" for="mode-{{ $mode }}">
+                                        {{ $label }}
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Options</label>
+                            @foreach ($options as $optionkey => $option)
+                                <div class="form-check">
+                                    {{ html()->checkbox('options[]', in_array($optionkey, old('options', [])), $optionkey)->id('option-' . $optionkey)->class('form-check-input')->checked($option['checked']) }}
+                                    <label class="form-check-label" for="option-{{ $optionkey }}">
+                                        {{ $option['label'] }}
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                        {{-- Region selection (collapsible) --}}
+                        @if (!empty($availableRegions))
+                            <div class="col-12 mb-4">
+                                <button class="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#regionsCollapse" aria-expanded="false" aria-controls="regionsCollapse">
+                                    <span>Filter by Regions</span>
+                                    <span class="collapse-icon" style="transition: transform 0.2s ease;">&#9662;</span>
+                                </button>
+                                <div class="collapse" id="regionsCollapse">
+                                    <div class="card card-body mt-2">
+                                        <div class="d-flex justify-content-end mb-2">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="toggleAllRegions(true)">Select All</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAllRegions(false)">Deselect All</button>
+                                        </div>
+                                        <div style="max-height: 250px; overflow-y: auto;">
+                                            @php
+                                                // Build hierarchy from flat region list
+                                                $regionTree = [];
+                                                foreach ($availableRegions as $region) {
+                                                    $parts = $region ? array_map('trim', explode(':', $region)) : [''];
+                                                    $depth = count($parts) - 1;
+                                                    $regionTree[] = [
+                                                        'full' => $region,
+                                                        'depth' => $depth,
+                                                        'label' => end($parts) ?: '(No Region)',
+                                                    ];
+                                                }
+                                            @endphp
+                                            @foreach ($regionTree as $region)
+                                                <div class="form-check" style="margin-left: {{ $region['depth'] * 1.25 }}rem;">
+                                                    {{ html()->checkbox('regions[]', true, $region['full'])->id('region-' . Str::slug($region['full'] ?: 'no-region'))->class('form-check-input region-checkbox')->attribute('data-region-path', $region['full']) }}
+                                                    <label class="form-check-label" for="region-{{ Str::slug($region['full'] ?: 'no-region') }}">
+                                                        {{ $region['label'] }}
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        @endforeach
+                        @endif
+
+                        <div class="col-12 text-center my-4">
+                            {{ html()->submit('Generate')->class('btn btn-primary btn-lg px-4') }}
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Font</label>
-                        @foreach ($fonts as $font => $label)
-                            <div class="form-check">
-                                {{ html()->radio('font', $font === old('font', 'sans-serif'), $font)->id('font-' . $font)->class('form-check-input') }}
-                                <label class="form-check-label" for="font-{{ $font }}">
-                                    {{ $label }}
-                                </label>
-                            </div>
-                        @endforeach
-                        <label for="font_size" class="form-label fw-bold mt-4">Font Size</label>
-                        {{ html()->select('font_size', $font_sizes, old('font_size') ?? '12')->id('font_size')->class('form-select') }}
-                    </div>
-                    <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Group by</label>
-                        @foreach ($group_by as $group => $label)
-                            <div class="form-check-label" class="form-check">
-                                {{ html()->radio('group_by', $group === old('group_by', 'day-region'), $group)->id('group_by-' . $group)->class('form-check-input') }}
-                                <label for="group_by-{{ $group }}">
-                                    {{ $label }}
-                                </label>
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Mode</label>
-                        @foreach ($modes as $mode => $label)
-                            <div class="form-check">
-                                {{ html()->radio('mode', $mode === old('mode', 'download'), $mode)->id('mode-' . $mode)->class('form-check-input') }}
-                                <label class="form-check-label" for="mode-{{ $mode }}">
-                                    {{ $label }}
-                                </label>
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Options</label>
-                        @foreach ($options as $optionkey => $option)
-                            <div class="form-check">
-                                {{ html()->checkbox('options[]', in_array($optionkey, old('options', [])), $optionkey)->id('option-' . $optionkey)->class('form-check-input')->checked($option['checked']) }}
-                                <label class="form-check-label" for="option-{{ $optionkey }}">
-                                    {{ $option['label'] }}
-                                </label>
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="col-12 text-center my-4">
-                        {{ html()->submit('Generate')->class('btn btn-primary btn-lg px-4') }}
-                    </div>
-                </div>
-                {{ html()->form()->close() }}
+                    {{ html()->form()->close() }}
+
+                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+                    <script>
+                        function toggleAllRegions(checked) {
+                            document.querySelectorAll('.region-checkbox').forEach(function(checkbox) {
+                                checkbox.checked = checked;
+                                checkbox.indeterminate = false;
+                            });
+                        }
+
+                        // Cascade selection: toggling a parent affects all children
+                        document.querySelectorAll('.region-checkbox').forEach(function(checkbox) {
+                            checkbox.addEventListener('change', function() {
+                                const path = this.dataset.regionPath;
+                                const prefix = path + ': ';
+
+                                // Toggle all children (regions that start with this path + ': ')
+                                document.querySelectorAll('.region-checkbox').forEach(function(child) {
+                                    if (child.dataset.regionPath.startsWith(prefix)) {
+                                        child.checked = checkbox.checked;
+                                        child.indeterminate = false;
+                                    }
+                                });
+
+                                // Update parent states
+                                updateParentStates();
+                            });
+                        });
+
+                        function updateParentStates() {
+                            // Process from deepest to shallowest
+                            const checkboxes = Array.from(document.querySelectorAll('.region-checkbox'));
+                            const byDepth = {};
+
+                            checkboxes.forEach(function(cb) {
+                                const depth = (cb.dataset.regionPath.match(/: /g) || []).length;
+                                if (!byDepth[depth]) byDepth[depth] = [];
+                                byDepth[depth].push(cb);
+                            });
+
+                            const depths = Object.keys(byDepth).map(Number).sort((a, b) => b - a);
+
+                            depths.forEach(function(depth) {
+                                if (depth === 0) return; // Top-level has no parent
+
+                                byDepth[depth].forEach(function(cb) {
+                                    const path = cb.dataset.regionPath;
+                                    const parentPath = path.substring(0, path.lastIndexOf(': '));
+                                    const parent = checkboxes.find(p => p.dataset.regionPath === parentPath);
+
+                                    if (parent) {
+                                        const prefix = parentPath + ': ';
+                                        const children = checkboxes.filter(c => {
+                                            const cPath = c.dataset.regionPath;
+                                            return cPath.startsWith(prefix) && !cPath.substring(prefix.length).includes(': ');
+                                        });
+
+                                        const checkedCount = children.filter(c => c.checked).length;
+                                        const indeterminateCount = children.filter(c => c.indeterminate).length;
+
+                                        if (checkedCount === 0 && indeterminateCount === 0) {
+                                            parent.checked = false;
+                                            parent.indeterminate = false;
+                                        } else if (checkedCount === children.length && indeterminateCount === 0) {
+                                            parent.checked = true;
+                                            parent.indeterminate = false;
+                                        } else {
+                                            parent.checked = false;
+                                            parent.indeterminate = true;
+                                        }
+                                    }
+                                });
+                            });
+                        }
+
+                        // Initialize parent states on page load
+                        updateParentStates();
+
+                        // Rotate arrow icon when collapse state changes
+                        document.getElementById('regionsCollapse')?.addEventListener('show.bs.collapse', function () {
+                            document.querySelector('.collapse-icon').style.transform = 'rotate(180deg)';
+                        });
+                        document.getElementById('regionsCollapse')?.addEventListener('hide.bs.collapse', function () {
+                            document.querySelector('.collapse-icon').style.transform = 'rotate(0deg)';
+                        });
+                    </script>
+                @endif
+
                 <p class="mb-4 mt-5">
                     More information is available on the
                     <a href="https://github.com/code4recovery/pdf" target="_blank">

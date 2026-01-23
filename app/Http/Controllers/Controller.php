@@ -23,19 +23,194 @@ class Controller extends BaseController
         self::$spec = new Spec();
     }
 
+    /**
+     * Fetch meeting data from a JSON feed or Google Sheets URL.
+     *
+     * @throws Exception When data cannot be fetched or parsed
+     */
+    private function fetchMeetingData(string $json): array
+    {
+        // Is it a Google Sheet?
+        $googleSheet = Str::startsWith($json, 'https://docs.google.com/spreadsheets/d/');
+
+        $useJson = $googleSheet
+            ? 'https://sheets.googleapis.com/v4/spreadsheets/' . explode('/', $json)[5] . '/values/A1:ZZ?key=' . getenv('GOOGLE_API_KEY')
+            : $json;
+
+        // Fetch data
+        try {
+            $response = Http::withOptions(['verify' => false])->get($useJson);
+        } catch (Exception $e) {
+            throw new Exception('Could not fetch data. Please check the address. Received the following message: ' . $e->getMessage());
+        }
+
+        // Handle fetch error
+        if ($response->failed()) {
+            if ($googleSheet) {
+                throw new Exception('Could not fetch data. Please check that the Google Sheet sharing settings enable anyone with the link to view.');
+            }
+
+            $error = 'Could not fetch data. Please check the JSON feed address.';
+            switch ($response->status()) {
+                case 401:
+                    $error = 'Data is protected. If you are using 12 Step Meeting List, consider setting data sharing to open.';
+                    break;
+                case 403:
+                    $error = 'Got a forbidden (403) error. Please check the JSON feed address.';
+                    break;
+                case 404:
+                    $error = 'Received a page not found (404) error. Please check the JSON feed address.';
+                    break;
+                case 500:
+                    $error = 'Received an internal server (500) error. Please check the JSON feed address.';
+                    break;
+            }
+            throw new Exception($error);
+        }
+
+        // Parse JSON
+        $meetings = $response->json();
+
+        if ($googleSheet) {
+            if (empty($meetings['values'])) {
+                throw new Exception('Could not get Google Sheet values. Response was ' . substr(trim($response->body()), 0, 100) . '…');
+            }
+
+            $headers = array_map(function ($header) {
+                return Str::slug($header, '_');
+            }, array_shift($meetings['values']));
+
+            $header_count = count($headers);
+
+            $types = self::$spec->getTypesByLanguage('en');
+            $type_lookup = array_flip(array_map('strtolower', $types));
+
+            $strings_days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+            $meetings = array_map(function ($row) use ($headers, $header_count, $strings_days, $type_lookup) {
+                $row_count = count($row);
+                if ($row_count > $header_count) {
+                    $row = array_slice($row, 0, $header_count);
+                } elseif ($row_count < $header_count) {
+                    $row = array_pad($row, $header_count, '');
+                }
+                $meeting = array_combine($headers, $row);
+
+                if (in_array($meeting['day'], $strings_days)) {
+                    $meeting['day'] = array_search($meeting['day'], $strings_days);
+                }
+
+                // Format time
+                $meeting['time'] = date('H:i', strtotime($meeting['time']));
+
+                // Arrayify types
+                $meeting['types'] = array_map('strtolower', array_map('trim', explode(',', $meeting['types'])));
+
+                // Filter out custom types
+                $meeting['types'] = array_filter($meeting['types'], function ($type) use ($type_lookup) {
+                    return array_key_exists($type, $type_lookup);
+                });
+
+                // Convert types to codes
+                $meeting['types'] = array_map(function ($type) use ($type_lookup) {
+                    return $type_lookup[$type];
+                }, $meeting['types']);
+
+                return $meeting;
+            }, $meetings['values']);
+        } elseif (!is_array($meetings)) {
+            throw new Exception('Could not parse JSON data. Response was ' . substr(trim($response->body()), 0, 100) . '…');
+        }
+
+        // Where $meetings[n]['day'] is an array, create separate values for each day
+        foreach ($meetings as $key => $entry) {
+            if (isset($entry['day']) && is_array($entry['day'])) {
+                $days = array_filter($entry['day'], 'strlen');
+                $first = reset($days);
+                foreach ($days as $day) {
+                    if ($day == $first) {
+                        $meetings[$key]['day'] = $day;
+                    } else {
+                        $new_meeting = $entry;
+                        $new_meeting['day'] = $day;
+                        $new_meeting['slug'] .= '-' . $day;
+                        $meetings[] = $new_meeting;
+                    }
+                }
+            }
+        }
+
+        return $meetings;
+    }
+
+    /**
+     * Extract unique region names from meeting data.
+     *
+     * @param array $meetings Raw meeting data
+     * @return array Sorted list of unique region names
+     */
+    private function extractRegions(array $meetings): array
+    {
+        $regions = [];
+
+        foreach ($meetings as $meeting) {
+            $meeting = (object) $meeting;
+
+            // Build region path from regions array (ordered parent to child)
+            if (!empty($meeting->regions)) {
+                if (is_string($meeting->regions)) {
+                    $meeting->regions = array_map('trim', explode('>', $meeting->regions));
+                }
+
+                // Add each level of the hierarchy so parent nodes exist in the tree
+                $path = [];
+                foreach ($meeting->regions as $part) {
+                    $path[] = $part;
+                    $regions[implode(': ', $path)] = true;
+                }
+            } elseif (!empty($meeting->city)) {
+                $regions_formatted = $meeting->city;
+                if (!empty($meeting->state)) {
+                    $regions_formatted .= ', ' . $meeting->state;
+                }
+                $regions[$regions_formatted] = true;
+            } else {
+                $regions[''] = true;
+            }
+        }
+
+        $regionList = array_keys($regions);
+        sort($regionList, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return $regionList;
+    }
+
     public function home()
     {
+        $json = request('json');
 
-        // default input
-        $json = request(
-            'json',
-            'https://demo.code4recovery.org/wp-admin/admin-ajax.php?action=meetings'
-        );
+        // Screen 1: No JSON URL provided - show simple URL input form
+        if (empty($json)) {
+            return view('home', ['screen' => 1]);
+        }
+
+        // Screen 2: JSON URL provided - fetch data and show full form with regions
+        try {
+            $meetings = $this->fetchMeetingData($json);
+            $availableRegions = $this->extractRegions($meetings);
+        } catch (Exception $e) {
+            return view('home', [
+                'screen' => 1,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        // Form defaults
         $width = request('width', 4.25);
         $height = request('height', 11);
         $numbering = request('numbering', 1);
 
-        // define options
+        // Define options for Screen 2
         $fonts = [
             'sans-serif' => 'Sans Serif',
             'serif' => 'Serif',
@@ -47,6 +222,7 @@ class Controller extends BaseController
             'download' => 'Download',
             'stream' => 'Stream',
         ];
+
         $options = [
             'legend' => [
                 'label' => 'Meeting Types Legend',
@@ -65,15 +241,32 @@ class Controller extends BaseController
                 'checked' => false,
             ],
         ];
+
         $languages = self::$spec->getLanguages();
+
         $group_by = [
             'day-region' => 'Day → Region',
             'day' => 'Day',
             'region-day' => 'Region → Day',
         ];
+
         $types = self::$spec->getTypesByLanguage('en');
 
-        return view('home', compact('fonts', 'font_sizes', 'modes', 'options', 'languages', 'types', 'group_by', 'json', 'width', 'height', 'numbering'));
+        return view('home', [
+            'screen' => 2,
+            'json' => $json,
+            'availableRegions' => $availableRegions,
+            'fonts' => $fonts,
+            'font_sizes' => $font_sizes,
+            'modes' => $modes,
+            'options' => $options,
+            'languages' => $languages,
+            'types' => $types,
+            'group_by' => $group_by,
+            'width' => $width,
+            'height' => $height,
+            'numbering' => $numbering,
+        ]);
     }
 
     public function pdf()
@@ -413,11 +606,6 @@ class Controller extends BaseController
                     $meeting->regions = array_map('trim', explode('>', $meeting->regions));
                 }
                 $meeting->regions_formatted = implode(': ', $meeting->regions);
-            } elseif (!empty($meeting->region)) {
-                $meeting->regions_formatted = $meeting->region;
-                if (!empty($meeting->sub_region)) {
-                    $meeting->regions_formatted .= ': ' . $meeting->sub_region;
-                }
             } elseif (!empty($meeting->city)) {
                 $meeting->regions_formatted = $meeting->city;
                 if (!empty($meeting->state)) {
@@ -445,6 +633,23 @@ class Controller extends BaseController
 
             return $meeting;
         });
+
+        // Filter by selected regions (if provided)
+        // Selecting a parent region includes all sub-regions
+        $selectedRegions = request('regions', []);
+        if (!empty($selectedRegions)) {
+            $meetings = $meetings->filter(function ($meeting) use ($selectedRegions) {
+                foreach ($selectedRegions as $selected) {
+                    // Exact match or is a sub-region (starts with selected + ': ')
+                    if ($meeting->regions_formatted === $selected ||
+                        str_starts_with($meeting->regions_formatted, $selected . ': ')) {
+                        return true;
+                    }
+                }
+
+                return false;
+            });
+        }
 
         if ($group_by === 'region-day') {
             $meetings = $meetings->sortBy('time')
