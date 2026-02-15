@@ -216,7 +216,7 @@ class Controller extends BaseController
             'serif' => 'Serif',
         ];
 
-        $font_sizes = array_combine(range(8, 12), array_map(fn($i) => "{$i} px", range(8, 12)));
+        $font_sizes = array_combine($sizes = [8, 9, 10, 11, 12, 16, 20, 24], array_map(fn($i) => "{$i} px", $sizes));
 
         $modes = [
             'download' => 'Download',
