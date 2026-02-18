@@ -60,7 +60,7 @@
 
 
         .legend>div {
-            font-size: 9px;
+            font-size: {{ $font_size }}px;
             line-height: .75;
             border-bottom: .5px solid #ddd;
             padding-bottom: 1.5px;
