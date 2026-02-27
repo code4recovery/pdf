@@ -13,6 +13,8 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.8.1",
         "sentry/sentry-laravel": "^4.0",
+        "setasign/fpdf": "^1.8",
+        "setasign/fpdi": "^2.6",
         "spatie/laravel-html": "^3.2"
     },
     "require-dev": {

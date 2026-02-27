@@ -1,28 +1,24 @@
-<table class="meeting">
-    <tbody>
-    <tr>
-        <td class="time">
-            {{ $meeting->time_formatted }}
-        </td>
-        <td>
-            <div class="name">
-                {{ $meeting->name }}
-            </div>
-            <div>
-                @if ($meeting->location && $meeting->location !== $meeting->name)
-                    {{ $meeting->location }},
-                @endif
-                {{ $meeting->address }}
-            </div>
-            @if (empty($region) || $region !== $meeting->regions_formatted)
-                <div>
-                    {{ $meeting->regions_formatted }}
-                </div>
+<tr class="meeting">
+    <td class="time">
+        {{ $meeting->time_formatted }}
+    </td>
+    <td>
+        <div class="name">
+            {{ $meeting->name }}
+        </div>
+        <div>
+            @if ($meeting->location && $meeting->location !== $meeting->name)
+                {{ $meeting->location }},
             @endif
-        </td>
-        <td class="types">
-            {{ implode(', ', $meeting->types) }}
-        </td>
-    </tr>
-    </tbody>
-</table>
+            {{ $meeting->address }}
+        </div>
+        @if (empty($region) || $region !== $meeting->regions_formatted)
+            <div>
+                {{ $meeting->regions_formatted }}
+            </div>
+        @endif
+    </td>
+    <td class="types">
+        {{ implode(', ', $meeting->types) }}
+    </td>
+</tr>
