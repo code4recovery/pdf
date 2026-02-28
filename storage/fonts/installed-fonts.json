@@ -1,0 +1,89 @@
+{
+    "noto sans jp": {
+        "100": "noto_sans_jp_100_83f1b84949662eec28453f783f49ff4f",
+        "200": "noto_sans_jp_200_7629f94f8a0630334506a83f8f94b3aa",
+        "300": "noto_sans_jp_300_c1c5c6fa5e5e8a50f1acb71dc451ce23",
+        "normal": "noto_sans_jp_normal_dd3701a274fb76800707c9a8c7c6e747",
+        "500": "noto_sans_jp_500_d9e2ac9d00f86ec0ed140e3f321fde78",
+        "600": "noto_sans_jp_600_c4ce386d70ec51e8c33eb9fb52fc6bc4",
+        "bold": "noto_sans_jp_bold_8e12b2ed4cf59ec70cd5efe7675e807f",
+        "800": "noto_sans_jp_800_362c7410f3a5cf59acfb96db3084775d",
+        "900": "noto_sans_jp_900_9d8afaba72a8b109079e32b62317c9b4"
+    },
+    "zen old mincho": {
+        "normal": "zen_old_mincho_normal_ec5d8c31d226f7c9a6c72e909a08a0f4",
+        "bold": "zen_old_mincho_bold_5393091954ac71f2d776c3c4baa408b0"
+    },
+    "noto sans": {
+        "100_italic": "noto_sans_100_italic_33678f31f9394a0568d99301a0642edc",
+        "200_italic": "noto_sans_200_italic_323103755dfde6355fa7b54223431d18",
+        "300_italic": "noto_sans_300_italic_19080c8c26d1f062faf7cfac3a02d547",
+        "italic": "noto_sans_italic_7d4ac8576e7aa167a5cceb07bec825dd",
+        "500_italic": "noto_sans_500_italic_c5e90f4cec8ed7c2f50b1b30b3f3f93c",
+        "600_italic": "noto_sans_600_italic_2dd62fb09cf7ded9e0c5320cc6798da7",
+        "bold_italic": "noto_sans_bold_italic_7691034e425cab0397ced8c2985818b6",
+        "800_italic": "noto_sans_800_italic_bd115c3ae20723e2f911987fa4e235ba",
+        "900_italic": "noto_sans_900_italic_9b50134435e228a4d86e1ba56f1bc8b3",
+        "100": "noto_sans_100_b69ae44cd595c285e6372c7d7768d5de",
+        "200": "noto_sans_200_9a44da72bf04833673b9263a02d682bf",
+        "300": "noto_sans_300_82b35c4bb332d4998189847ebaf010e6",
+        "normal": "noto_sans_normal_1d3fa1de43813f2e3d43c049a3dc3027",
+        "500": "noto_sans_500_93a0c99266b5038dea832e2e4a453c28",
+        "600": "noto_sans_600_28250d88674528bd3123cc6a87717c32",
+        "bold": "noto_sans_bold_d14bb300c338842261b48b55ff65a0d0",
+        "800": "noto_sans_800_8d0004275b318fedf8c3734c04325c02",
+        "900": "noto_sans_900_86a7f28bdf064d755038aea2bf9d083c"
+    },
+    "noto serif": {
+        "100_italic": "noto_serif_100_italic_52161ed8c9f00985ad0f99482a5b3296",
+        "200_italic": "noto_serif_200_italic_693b468e7818c117518e6b4531347e54",
+        "300_italic": "noto_serif_300_italic_1dff7846c5873d2126a3ed7e3f481a1b",
+        "italic": "noto_serif_italic_85ffc69b3e1234b603ec918726ebed38",
+        "500_italic": "noto_serif_500_italic_7171665f3f6496a3fbe8ae438fe3b928",
+        "600_italic": "noto_serif_600_italic_2bd459256e374f32d2d491cd29e3efdf",
+        "bold_italic": "noto_serif_bold_italic_8b8a6b7efdb5fdefe8cd6811b72351ab",
+        "800_italic": "noto_serif_800_italic_1b9498ae3d62b7b72df4f94175ce4e3f",
+        "900_italic": "noto_serif_900_italic_23b9a38055e7adb1d7a5e13f562dfdb5",
+        "100": "noto_serif_100_4c8ed003273d49c04103f0c160d98949",
+        "200": "noto_serif_200_84bf05a64adf355259bbae1a39399ea4",
+        "300": "noto_serif_300_bc95e22514f039ed9d2097227c4bb2fd",
+        "normal": "noto_serif_normal_f0203efaa67eaeb0c1287d435e65b41b",
+        "500": "noto_serif_500_8f530c73b32ea6f38f4ac11c83cf62a5",
+        "600": "noto_serif_600_33917c439fceb42abfd5b3b358c4f7ec",
+        "bold": "noto_serif_bold_e7edeb215ae4fda1e233560bdb1240fe",
+        "800": "noto_serif_800_e204f85bcb8cfafbfcdaa3c0981e38a2",
+        "900": "noto_serif_900_abf94b3c8785893e447c52f92013504f"
+    },
+    "noto serif jp": {
+        "200": "noto_serif_jp_200_cbe05608131cf733dd267d04c81c2415",
+        "300": "noto_serif_jp_300_aca092c2aa799eedc7aceb1046e754ca",
+        "normal": "noto_serif_jp_normal_c0e5d80bbba5a4a9789bd1eff88cd31c",
+        "500": "noto_serif_jp_500_768e8ea27f87958559a2910f81f7cccf",
+        "600": "noto_serif_jp_600_aa0136b9b353883e82f384c7b38a1306",
+        "bold": "noto_serif_jp_bold_64c3273cd56049f4c610b031739ea546",
+        "800": "noto_serif_jp_800_e3bc8b8993d1a22be8b0ea6890ab5389",
+        "900": "noto_serif_jp_900_56082c673eb35e88e55dfb3a2d5fafe9"
+    },
+    "noto sans thai": {
+        "100": "noto_sans_thai_100_d487468d10e51c043873dce5de5c326a",
+        "200": "noto_sans_thai_200_9f829ec0badbf5f4f7d2ba97448140c7",
+        "300": "noto_sans_thai_300_efb8572021e685d984cb2f8fef61ef6d",
+        "normal": "noto_sans_thai_normal_68a4b32294e1f11656748a7f85d306de",
+        "500": "noto_sans_thai_500_fe46c3d7c0eaeff5b622259504a0c1d1",
+        "600": "noto_sans_thai_600_109b7a35e1cda0923c83f93b5a9c3a17",
+        "bold": "noto_sans_thai_bold_abac1caa932841dc79eb571c3539b0b9",
+        "800": "noto_sans_thai_800_0d1b70df1f9bc1ec880ea39aaa1678ee",
+        "900": "noto_sans_thai_900_9ccbedbca84040bb35cfb1231a9d8fbe"
+    },
+    "noto serif thai": {
+        "100": "noto_serif_thai_100_81aec4222f94e0d35ccf5322c5dc4144",
+        "200": "noto_serif_thai_200_36654d4a1865b8cfa6bbdc64ae380f6b",
+        "300": "noto_serif_thai_300_ae39ee4a3b742ff99fbc9003d1ae5c0d",
+        "normal": "noto_serif_thai_normal_6233b6659ebe3b553faa139398cf17b3",
+        "500": "noto_serif_thai_500_be4c64132128e35b4b0657e52fbce505",
+        "600": "noto_serif_thai_600_e0ef4eb0c5c2f0778ce2fe07bd2f625b",
+        "bold": "noto_serif_thai_bold_8e61fc0a7170a8a786a332d9eceb429f",
+        "800": "noto_serif_thai_800_8c6f86a82da26f22d612c16934a8424c",
+        "900": "noto_serif_thai_900_a4bc963284bcced2aaa37b9e8a9f59ce"
+    }
+}
