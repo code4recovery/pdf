@@ -14,8 +14,5 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-//show home page
-Route::get('/', [Controller::class, 'home']);
-
-//show pdf
-Route::get('pdf', [Controller::class, 'pdf']);
+Route::get('/', [Controller::class, 'home'])->name('home');
+Route::get('/pdf', [Controller::class, 'pdf'])->name('pdf');
