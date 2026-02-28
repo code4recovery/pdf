@@ -1,6 +1,8 @@
 @php
     $page_margin = 18;
     $footer_height = 20;
+    $page_start = $page_start ?? ($numbering !== false ? $numbering - 1 : 0);
+    $show_legend = $show_legend ?? in_array('legend', $options);
 @endphp
 <!DOCTYPE html>
 <html lang="{{$language}}">
@@ -8,9 +10,8 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&family=Noto+Sans+Thai:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Serif+JP:wght@200..900&family=Noto+Serif+Thai:wght@100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    {{-- Noto fonts are cached locally in storage/fonts/ and resolved via installed-fonts.json.
+         Remote Google Fonts links removed to avoid unnecessary HTTP fetch + CSS parsing by dompdf. --}}
     <style type="text/css">
         @page {
             margin: {{ $page_margin }}px;
@@ -23,7 +24,7 @@
         body {
             color: black;
             counter-increment: page 1;
-            counter-reset: page {{ $numbering - 1 }};
+            counter-reset: page {{ $page_start }};
             font-family: {{ $font }};
             font-size: {{ $font_size }}px;
             line-height: .75;
@@ -83,18 +84,18 @@
             page-break-after: auto;
         }
 
-        .meeting {
+        .meetings {
             border-spacing: 0;
-            margin: 0 0 5px;
             padding: 0;
-            page-break-inside: avoid;
-            vertical-align: top;
             width: 100%;
         }
 
+        .meeting {
+            page-break-inside: avoid;
+        }
+
         .meeting td {
-            margin: 0;
-            padding: 0;
+            padding: 0 0 5px 0;
             vertical-align: top;
         }
 
@@ -137,7 +138,7 @@
         <footer></footer>
     @endif
     <main>
-        @if (in_array('legend', $options))
+        @if ($show_legend)
             @include('legend', compact('types_in_use', 'types'))
         @endif
         @if ($group_by === 'day-region')
@@ -149,9 +150,11 @@
                             @if ($region)
                                 <span class="subheading">{{ $region }}</span>
                             @endif
-                            @foreach ($meetings as $meeting)
-                                @include('meeting', compact('meeting', 'region'))
-                            @endforeach
+                            <table class="meetings"><tbody>
+                                @foreach ($meetings as $meeting)
+                                    @include('meeting', compact('meeting', 'region'))
+                                @endforeach
+                            </tbody></table>
                         </div>
                     @endforeach
                 </div>
@@ -165,9 +168,11 @@
                             @if ($day)
                                 <span class="subheading">{{ $day }}</span>
                             @endif
-                            @foreach ($meetings as $meeting)
-                                @include('meeting', compact('meeting', 'region'))
-                            @endforeach
+                            <table class="meetings"><tbody>
+                                @foreach ($meetings as $meeting)
+                                    @include('meeting', compact('meeting', 'region'))
+                                @endforeach
+                            </tbody></table>
                         </div>
                     @endforeach
                 </div>
@@ -176,9 +181,11 @@
             @foreach ($days as $day => $meetings)
                 <div class="day">
                     <span class="heading">{{ $day }}</span>
-                    @foreach ($meetings as $meeting)
-                        @include('meeting', compact('meeting'))
-                    @endforeach
+                    <table class="meetings"><tbody>
+                        @foreach ($meetings as $meeting)
+                            @include('meeting', compact('meeting'))
+                        @endforeach
+                    </tbody></table>
                 </div>
             @endforeach
         @endif

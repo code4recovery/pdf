@@ -18,9 +18,12 @@ package-lock.json
 docker-compose.yml
 Dockerfile
 nginx.conf
+/.ai/mcp/mcp.json
+/.junie/mcp/mcp.json
+/.junie/guidelines.md
+/.plans/89-regions-filter.md
+/.plans/92-24hr-time-format.md
+/.plans/react-inertia-conversion.md
 /.mcp.json
 /AGENTS.md
 /CLAUDE.md
-/.junie/
-/.plans/
-/.ai/

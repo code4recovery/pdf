@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Http;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use Exception;
+use setasign\Fpdi\Fpdi;
 
 class Controller extends BaseController
 {
@@ -686,18 +687,114 @@ class Controller extends BaseController
             $days = $meetings->groupBy('day_formatted');
         }
 
-        // Set variables for view
-        $viewData = compact('language', 'days', 'font', 'font_size', 'numbering', 'group_by', 'types_in_use', 'regions', 'types', 'options', 'meeting_types_heading');
+        // Base view data shared across all chunks
+        $baseViewData = compact('language', 'font', 'font_size', 'numbering', 'group_by', 'types_in_use', 'types', 'options', 'meeting_types_heading');
 
-        // Debugging
+        // Debugging — single render, no chunking
         if ($debug) {
-            return view('pdf', $viewData);
+            return view('pdf', array_merge($baseViewData, compact('days', 'regions')));
         }
 
-        //output PDF
-        $pdf = PDF::loadView('pdf', $viewData)
-            ->setPaper([0, 0, $width, $height]);
+        // Determine top-level groups for chunking
+        $topLevelGroups = ($group_by === 'region-day') ? $regions : $days;
+        $meetingCount = $meetings->count();
 
-        return ($stream) ? $pdf->stream() : $pdf->download($pdf_name);
+        // Small feed fast path — skip chunking overhead for ≤500 meetings
+        if ($meetingCount <= 500) {
+            $viewData = array_merge($baseViewData, compact('days', 'regions'));
+            $pdf = PDF::loadView('pdf', $viewData)
+                ->setPaper([0, 0, $width, $height]);
+
+            return ($stream) ? $pdf->stream() : $pdf->download($pdf_name);
+        }
+
+        // Build chunk data arrays from the grouped collections, then free all
+        // meeting data so dompdf has maximum memory available for rendering.
+        $chunks = [];
+        $chunkIndex = 0;
+        foreach ($topLevelGroups as $groupKey => $groupData) {
+            $chunks[] = [
+                'group_key' => $groupKey,
+                'group_data' => $groupData->toArray(),
+                'show_legend' => ($chunkIndex === 0 && in_array('legend', $options)),
+            ];
+            $chunkIndex++;
+        }
+
+        // Free all meeting data — no longer needed after extracting chunk arrays
+        unset($meetings, $response, $days, $regions, $topLevelGroups);
+        gc_collect_cycles();
+
+        // Chunked rendering — render each group separately, write to temp files
+        $pageOffset = ($numbering !== false) ? (int) $numbering : false;
+        $chunkFiles = [];
+
+        foreach ($chunks as $index => $chunkInfo) {
+            if ($group_by === 'region-day') {
+                $chunkDays = collect();
+                $chunkRegions = collect([$chunkInfo['group_key'] => collect($chunkInfo['group_data'])->map(fn($items) => collect($items))]);
+            } elseif ($group_by === 'day-region') {
+                $chunkDays = collect([$chunkInfo['group_key'] => collect($chunkInfo['group_data'])->map(fn($items) => collect($items))]);
+                $chunkRegions = collect();
+            } else {
+                $chunkDays = collect([$chunkInfo['group_key'] => collect($chunkInfo['group_data'])]);
+                $chunkRegions = collect();
+            }
+
+            $chunkViewData = array_merge($baseViewData, [
+                'days' => $chunkDays,
+                'regions' => $chunkRegions,
+                'show_legend' => $chunkInfo['show_legend'],
+                'page_start' => ($pageOffset !== false) ? $pageOffset - 1 : 0,
+            ]);
+
+            $chunk = PDF::loadView('pdf', $chunkViewData)
+                ->setPaper([0, 0, $width, $height]);
+            $chunk->render();
+
+            $pageCount = $chunk->getDomPDF()->getCanvas()->get_page_count();
+            if ($pageOffset !== false) {
+                $pageOffset += $pageCount;
+            }
+
+            // Write to temp file immediately instead of accumulating in memory
+            $tmpFile = tempnam(sys_get_temp_dir(), 'pdf_chunk_');
+            file_put_contents($tmpFile, $chunk->output());
+            $chunkFiles[] = $tmpFile;
+
+            unset($chunk, $chunkDays, $chunkRegions, $chunkViewData);
+            $chunks[$index] = null; // free chunk data
+            gc_collect_cycles();
+        }
+        unset($chunks);
+
+        // Merge chunks with FPDI
+        $merger = new Fpdi();
+
+        foreach ($chunkFiles as $tmpFile) {
+            $pageCount = $merger->setSourceFile($tmpFile);
+            for ($i = 1; $i <= $pageCount; $i++) {
+                $tplId = $merger->importPage($i);
+                $size = $merger->getTemplateSize($tplId);
+                $merger->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                $merger->useTemplate($tplId);
+            }
+            @unlink($tmpFile);
+        }
+
+        $mergedPdf = $merger->Output('S');
+        unset($merger);
+
+        if ($stream) {
+            return response($mergedPdf, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $pdf_name . '"',
+            ]);
+        }
+
+        return response($mergedPdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $pdf_name . '"',
+        ]);
     }
 }
