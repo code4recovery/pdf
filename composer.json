@@ -9,13 +9,13 @@
         "barryvdh/laravel-dompdf": "^3.0",
         "code4recovery/spec": "^1.1",
         "guzzlehttp/guzzle": "^7.6.1",
+        "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^11.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.8.1",
         "sentry/sentry-laravel": "^4.0",
         "setasign/fpdf": "^1.8",
-        "setasign/fpdi": "^2.6",
-        "spatie/laravel-html": "^3.2"
+        "setasign/fpdi": "^2.6"
     },
     "require-dev": {
         "fakerphp/faker": "^1.22.0",

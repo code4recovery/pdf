@@ -10,6 +10,7 @@ use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Http;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 use Exception;
 use setasign\Fpdi\Fpdi;
 
@@ -186,13 +187,13 @@ class Controller extends BaseController
         return $regionList;
     }
 
-    public function home()
+    public function home(): \Inertia\Response
     {
         $json = request('json');
 
         // Screen 1: No JSON URL provided - show simple URL input form
         if (empty($json)) {
-            return view('home', ['screen' => 1]);
+            return Inertia::render('Home', ['screen' => 1]);
         }
 
         // Screen 2: JSON URL provided - fetch data and show full form with regions
@@ -200,7 +201,7 @@ class Controller extends BaseController
             $meetings = $this->fetchMeetingData($json);
             $availableRegions = $this->extractRegions($meetings);
         } catch (Exception $e) {
-            return view('home', [
+            return Inertia::render('Home', [
                 'screen' => 1,
                 'error' => $e->getMessage(),
             ]);
@@ -253,7 +254,7 @@ class Controller extends BaseController
 
         $types = self::$spec->getTypesByLanguage('en');
 
-        return view('home', [
+        return Inertia::render('Home', [
             'screen' => 2,
             'json' => $json,
             'availableRegions' => $availableRegions,
@@ -390,7 +391,7 @@ class Controller extends BaseController
             $response = Http::withOptions(['verify' => false])->get($useJson);
         } catch (Exception $e) {
             $error = 'Could not fetch data. Please check the address. Received the following message: ' . $e->getMessage();
-            return back()->with('error', $error)->withInput();
+            return response($error, 422);
         }
 
         //handle fetch error
@@ -415,7 +416,7 @@ class Controller extends BaseController
                         break;
                 }
             }
-            return back()->with('error', $error)->withInput();
+            return response($error, 422);
         }
 
         //parse JSON
@@ -423,7 +424,7 @@ class Controller extends BaseController
 
         if ($googleSheet) {
             if (empty($meetings['values'])) {
-                return back()->with('error', 'Could not get Google Sheet values. Response was ' . substr(trim($response->body()), 0, 100) . '…')->withInput();
+                return response('Could not get Google Sheet values. Response was ' . substr(trim($response->body()), 0, 100) . '…', 422);
             }
 
             $headers = array_map(function ($header) {
@@ -466,7 +467,7 @@ class Controller extends BaseController
                 return $meeting;
             }, $meetings['values']);
         } elseif (!is_array($meetings)) {
-            return back()->with('error', 'Could not parse JSON data. Response was ' . substr(trim($response->body()), 0, 100) . '…')->withInput();
+            return response('Could not parse JSON data. Response was ' . substr(trim($response->body()), 0, 100) . '…', 422);
         }
 
         // Where $meetings[n]['day'] is an array, create separate values for each day
