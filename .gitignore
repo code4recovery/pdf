@@ -23,9 +23,8 @@ nginx.conf
 /.ai/mcp/mcp.json
 /.junie/mcp/mcp.json
 /.junie/guidelines.md
-/.plans/89-regions-filter.md
-/.plans/92-24hr-time-format.md
-/.plans/react-inertia-conversion.md
+/.plans/
+/.context/
 /.mcp.json
 /AGENTS.md
 /CLAUDE.md
