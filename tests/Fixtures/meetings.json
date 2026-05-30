@@ -1,0 +1,231 @@
+[
+    {
+        "slug": "sunday-serenity",
+        "name": "Sunday Serenity",
+        "day": 0,
+        "time": "09:00",
+        "address": "100 Main St, Tupelo, MS",
+        "regions": ["Mississippi", "North", "Tupelo"],
+        "types": ["O", "D"]
+    },
+    {
+        "slug": "evening-reflection",
+        "name": "Evening Reflection",
+        "day": 0,
+        "time": "19:00",
+        "address": "200 University Ave, Oxford, MS",
+        "regions": ["Mississippi", "North", "Oxford"],
+        "types": ["O", "B"]
+    },
+    {
+        "slug": "beginners-sun",
+        "name": "Beginners Sunday",
+        "day": 0,
+        "time": "11:00",
+        "address": "303 Bourbon St",
+        "city": "New Orleans",
+        "state": "LA",
+        "types": ["O", "BE"]
+    },
+    {
+        "slug": "morning-meditation",
+        "name": "Morning Meditation",
+        "day": 1,
+        "time": "07:00",
+        "address": "400 Capitol St, Jackson, MS",
+        "regions": ["Mississippi", "South", "Jackson"],
+        "types": ["O", "M"]
+    },
+    {
+        "slug": "lunch-bunch",
+        "name": "Lunch Bunch",
+        "day": 1,
+        "time": "12:00",
+        "address": "500 Beach Blvd, Gulfport, MS",
+        "regions": ["Mississippi", "South", "Gulfport"],
+        "types": ["O", "D"]
+    },
+    {
+        "slug": "online-mondays",
+        "name": "Online Mondays",
+        "day": 1,
+        "time": "20:00",
+        "address": "Online",
+        "city": "Memphis",
+        "state": "TN",
+        "types": ["O", "ONL"]
+    },
+    {
+        "slug": "tuesday-steps",
+        "name": "Tuesday Steps",
+        "day": 2,
+        "time": "18:00",
+        "address": "401 Capitol St, Jackson, MS",
+        "regions": ["Mississippi", "South", "Jackson"],
+        "types": ["O", "ST"]
+    },
+    {
+        "slug": "asa-no-tsudoi",
+        "name": "朝の集い",
+        "day": 2,
+        "time": "20:00",
+        "address": "150 Beale St",
+        "city": "Memphis",
+        "state": "TN",
+        "types": ["O", "D"]
+    },
+    {
+        "slug": "early-bird-wed",
+        "name": "Early Bird Wednesday",
+        "day": 3,
+        "time": "06:30",
+        "address": "101 Main St, Tupelo, MS",
+        "regions": ["Mississippi", "North", "Tupelo"],
+        "types": ["O", "BE"]
+    },
+    {
+        "slug": "womens-wed",
+        "name": "Women's Wednesday",
+        "day": 3,
+        "time": "19:30",
+        "address": "201 University Ave, Oxford, MS",
+        "regions": ["Mississippi", "North", "Oxford"],
+        "types": ["C", "W"]
+    },
+    {
+        "slug": "wednesday-discussion",
+        "name": "Wednesday Discussion",
+        "day": 3,
+        "time": "12:00",
+        "address": "501 Beach Blvd, Gulfport, MS",
+        "regions": ["Mississippi", "South", "Gulfport"],
+        "types": ["O", "D"]
+    },
+    {
+        "slug": "thursday-thinkers",
+        "name": "Thursday Thinkers",
+        "day": 4,
+        "time": "07:00",
+        "address": "402 Capitol St, Jackson, MS",
+        "regions": ["Mississippi", "South", "Jackson"],
+        "types": ["O", "D"]
+    },
+    {
+        "slug": "bigbook-thu",
+        "name": "Big Book Thursday",
+        "day": 4,
+        "time": "18:30",
+        "address": "502 Beach Blvd, Gulfport, MS",
+        "regions": ["Mississippi", "South", "Gulfport"],
+        "types": ["O", "B"]
+    },
+    {
+        "slug": "thursday-closed",
+        "name": "Thursday Closed Group",
+        "day": 4,
+        "time": "20:00",
+        "address": "202 University Ave, Oxford, MS",
+        "regions": ["Mississippi", "North", "Oxford"],
+        "types": ["C", "D"]
+    },
+    {
+        "slug": "friday-noon",
+        "name": "Friday Noon Group",
+        "day": 5,
+        "time": "12:00",
+        "address": "102 Main St, Tupelo, MS",
+        "regions": ["Mississippi", "North", "Tupelo"],
+        "types": ["O", "D"]
+    },
+    {
+        "slug": "closed-fri",
+        "name": "Closed Friday Discussion",
+        "day": 5,
+        "time": "20:00",
+        "address": "203 University Ave, Oxford, MS",
+        "regions": ["Mississippi", "North", "Oxford"],
+        "types": ["C", "D"]
+    },
+    {
+        "slug": "friday-mens",
+        "name": "Friday Men's Group",
+        "day": 5,
+        "time": "18:00",
+        "address": "403 Capitol St, Jackson, MS",
+        "regions": ["Mississippi", "South", "Jackson"],
+        "types": ["O", "M"]
+    },
+    {
+        "slug": "sat-sunrise",
+        "name": "Saturday Sunrise",
+        "day": 6,
+        "time": "07:00",
+        "address": "404 Capitol St, Jackson, MS",
+        "regions": ["Mississippi", "South", "Jackson"],
+        "types": ["O", "M"]
+    },
+    {
+        "slug": "sat-womens",
+        "name": "Saturday Women's Meeting",
+        "day": 6,
+        "time": "10:00",
+        "address": "204 University Ave, Oxford, MS",
+        "regions": ["Mississippi", "North", "Oxford"],
+        "types": ["C", "W"]
+    },
+    {
+        "slug": "sat-steps",
+        "name": "Saturday Step Study",
+        "day": 6,
+        "time": "19:00",
+        "address": "103 Main St, Tupelo, MS",
+        "regions": ["Mississippi", "North", "Tupelo"],
+        "types": ["O", "ST"]
+    },
+    {
+        "slug": "closed-renovation",
+        "name": "Closed for Renovation",
+        "day": 6,
+        "time": "11:00",
+        "address": "503 Beach Blvd, Gulfport, MS",
+        "regions": ["Mississippi", "South", "Gulfport"],
+        "types": ["TC"]
+    },
+    {
+        "slug": "suspended-sat",
+        "name": "Suspended Saturday",
+        "day": 6,
+        "time": "20:00",
+        "address": "104 Main St, Tupelo, MS",
+        "regions": ["Mississippi", "North", "Tupelo"],
+        "types": ["TC", "D"]
+    },
+    {
+        "slug": "sunday-bigbook",
+        "name": "Sunday Big Book",
+        "day": 0,
+        "time": "17:00",
+        "address": "405 Capitol St, Jackson, MS",
+        "regions": ["Mississippi", "South", "Jackson"],
+        "types": ["O", "B"]
+    },
+    {
+        "slug": "tuesday-beginners",
+        "name": "Tuesday Beginners",
+        "day": 2,
+        "time": "19:00",
+        "address": "504 Beach Blvd, Gulfport, MS",
+        "regions": ["Mississippi", "South", "Gulfport"],
+        "types": ["O", "BE"]
+    },
+    {
+        "slug": "wednesday-online",
+        "name": "Wednesday Online Meeting",
+        "day": 3,
+        "time": "20:30",
+        "address": "Online",
+        "city": "New Orleans",
+        "state": "LA",
+        "types": ["O", "ONL"]
+    }
+]
