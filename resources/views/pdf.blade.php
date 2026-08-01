@@ -81,7 +81,8 @@
             width: 40px;
         }
 
-        .day:last-child {
+        .day:last-child,
+        .region:last-child {
             page-break-after: auto;
         }
 

@@ -1,0 +1,158 @@
+[
+  {
+    "slug": "alpha-0-0",
+    "name": "Alpha Meeting 00",
+    "day": 0,
+    "time": "19:00",
+    "address": "100 Main St, Alpha, MS",
+    "regions": [
+      "Alpha"
+    ],
+    "types": [
+      "O"
+    ]
+  },
+  {
+    "slug": "alpha-0-1",
+    "name": "Alpha Meeting 01",
+    "day": 0,
+    "time": "19:00",
+    "address": "101 Main St, Alpha, MS",
+    "regions": [
+      "Alpha"
+    ],
+    "types": [
+      "O"
+    ]
+  },
+  {
+    "slug": "alpha-1-0",
+    "name": "Alpha Meeting 10",
+    "day": 1,
+    "time": "19:00",
+    "address": "100 Main St, Alpha, MS",
+    "regions": [
+      "Alpha"
+    ],
+    "types": [
+      "O"
+    ]
+  },
+  {
+    "slug": "alpha-1-1",
+    "name": "Alpha Meeting 11",
+    "day": 1,
+    "time": "19:00",
+    "address": "101 Main St, Alpha, MS",
+    "regions": [
+      "Alpha"
+    ],
+    "types": [
+      "O"
+    ]
+  },
+  {
+    "slug": "bravo-0-0",
+    "name": "Bravo Meeting 00",
+    "day": 0,
+    "time": "19:00",
+    "address": "100 Main St, Bravo, MS",
+    "regions": [
+      "Bravo"
+    ],
+    "types": [
+      "O"
+    ]
+  },
+  {
+    "slug": "bravo-0-1",
+    "name": "Bravo Meeting 01",
+    "day": 0,
+    "time": "19:00",
+    "address": "101 Main St, Bravo, MS",
+    "regions": [
+      "Bravo"
+    ],
+    "types": [
+      "O"
+    ]
+  },
+  {
+    "slug": "bravo-1-0",
+    "name": "Bravo Meeting 10",
+    "day": 1,
+    "time": "19:00",
+    "address": "100 Main St, Bravo, MS",
+    "regions": [
+      "Bravo"
+    ],
+    "types": [
+      "O"
+    ]
+  },
+  {
+    "slug": "bravo-1-1",
+    "name": "Bravo Meeting 11",
+    "day": 1,
+    "time": "19:00",
+    "address": "101 Main St, Bravo, MS",
+    "regions": [
+      "Bravo"
+    ],
+    "types": [
+      "O"
+    ]
+  },
+  {
+    "slug": "charlie-0-0",
+    "name": "Charlie Meeting 00",
+    "day": 0,
+    "time": "19:00",
+    "address": "100 Main St, Charlie, MS",
+    "regions": [
+      "Charlie"
+    ],
+    "types": [
+      "O"
+    ]
+  },
+  {
+    "slug": "charlie-0-1",
+    "name": "Charlie Meeting 01",
+    "day": 0,
+    "time": "19:00",
+    "address": "101 Main St, Charlie, MS",
+    "regions": [
+      "Charlie"
+    ],
+    "types": [
+      "O"
+    ]
+  },
+  {
+    "slug": "charlie-1-0",
+    "name": "Charlie Meeting 10",
+    "day": 1,
+    "time": "19:00",
+    "address": "100 Main St, Charlie, MS",
+    "regions": [
+      "Charlie"
+    ],
+    "types": [
+      "O"
+    ]
+  },
+  {
+    "slug": "charlie-1-1",
+    "name": "Charlie Meeting 11",
+    "day": 1,
+    "time": "19:00",
+    "address": "101 Main St, Charlie, MS",
+    "regions": [
+      "Charlie"
+    ],
+    "types": [
+      "O"
+    ]
+  }
+]
