@@ -164,7 +164,9 @@
         @elseif ($group_by === 'region-day')
             @foreach ($regions as $region => $days)
                 <div class="region">
-                    <span class="heading">{{ $region }}</span>
+                    @if ($region)
+                        <span class="heading">{{ $region }}</span>
+                    @endif
                     @foreach ($days as $day => $meetings)
                         <div class="day">
                             @if ($day)

@@ -133,6 +133,39 @@ class PdfTest extends TestCase
         return $meetings;
     }
 
+    #[Test]
+    public function region_day_omits_the_heading_for_meetings_with_no_region(): void
+    {
+        $meeting = (object) [
+            'time_formatted' => '7 am',
+            'name' => 'Sun Up Group',
+            'location' => null,
+            'address' => '127 Front St',
+            'regions_formatted' => '',
+            'types' => ['O'],
+        ];
+
+        $html = view('pdf', [
+            'language' => 'en',
+            'font' => 'Noto Sans',
+            'font_size' => 10,
+            'numbering' => false,
+            'group_by' => 'region-day',
+            'types_in_use' => [],
+            'types' => [],
+            'options' => [],
+            'meeting_types_heading' => 'Meeting Types',
+            'days' => collect(),
+            'regions' => collect(['' => collect(['MONDAY' => collect([$meeting])])]),
+        ])->render();
+
+        $this->assertStringNotContainsString(
+            '<span class="heading"></span>',
+            preg_replace('~<span class="heading">\s*</span>~', '<span class="heading"></span>', $html),
+            'A region-less group must not emit an empty .heading — its border-bottom renders as a stray rule.'
+        );
+    }
+
     protected function fakeMultiRegionFeed(): void
     {
         Http::fake([
