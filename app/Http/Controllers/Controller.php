@@ -292,6 +292,36 @@ class Controller extends BaseController
         return rtrim(rtrim(number_format($points / 72, 2, '.', ''), '0'), '.');
     }
 
+    /**
+     * Merge PDF files page-by-page, in order, into one document.
+     *
+     * @param list<string> $paths
+     */
+    private function mergePdfFiles(array $paths): string
+    {
+        $merger = new Fpdi();
+
+        foreach ($paths as $path) {
+            $pageCount = $merger->setSourceFile($path);
+            for ($i = 1; $i <= $pageCount; $i++) {
+                $tplId = $merger->importPage($i);
+                $size = $merger->getTemplateSize($tplId);
+                $merger->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                $merger->useTemplate($tplId);
+            }
+        }
+
+        return $merger->Output('S');
+    }
+
+    private function pdfResponse(string $bytes, string $filename, bool $stream): \Illuminate\Http\Response
+    {
+        return response($bytes, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => ($stream ? 'inline' : 'attachment') . '; filename="' . $filename . '"',
+        ]);
+    }
+
     public function home(): \Inertia\Response
     {
         $json = request('json');
@@ -817,7 +847,20 @@ class Controller extends BaseController
             $pdf = PDF::loadView('pdf', $viewData)
                 ->setPaper([0, 0, $width, $height]);
 
-            return ($stream) ? $pdf->stream() : $pdf->download($pdf_name);
+            if ($covers['front'] === null && $covers['back'] === null) {
+                return ($stream) ? $pdf->stream() : $pdf->download($pdf_name);
+            }
+
+            $insideFile = tempnam(sys_get_temp_dir(), 'pdf_inside_');
+            try {
+                file_put_contents($insideFile, $pdf->output());
+                unset($pdf);
+                $mergedPdf = $this->mergePdfFiles(array_values(array_filter([$covers['front'], $insideFile, $covers['back']])));
+            } finally {
+                @unlink($insideFile);
+            }
+
+            return $this->pdfResponse($mergedPdf, $pdf_name, $stream);
         }
 
         // Build chunk data arrays from the grouped collections, then free all
@@ -841,72 +884,53 @@ class Controller extends BaseController
         $pageOffset = ($numbering !== false) ? (int) $numbering : false;
         $chunkFiles = [];
 
-        foreach ($chunks as $index => $chunkInfo) {
-            if ($group_by === 'region-day') {
-                $chunkDays = collect();
-                $chunkRegions = collect([$chunkInfo['group_key'] => collect($chunkInfo['group_data'])->map(fn($items) => collect($items))]);
-            } elseif ($group_by === 'day-region') {
-                $chunkDays = collect([$chunkInfo['group_key'] => collect($chunkInfo['group_data'])->map(fn($items) => collect($items))]);
-                $chunkRegions = collect();
-            } else {
-                $chunkDays = collect([$chunkInfo['group_key'] => collect($chunkInfo['group_data'])]);
-                $chunkRegions = collect();
+        try {
+            foreach ($chunks as $index => $chunkInfo) {
+                if ($group_by === 'region-day') {
+                    $chunkDays = collect();
+                    $chunkRegions = collect([$chunkInfo['group_key'] => collect($chunkInfo['group_data'])->map(fn($items) => collect($items))]);
+                } elseif ($group_by === 'day-region') {
+                    $chunkDays = collect([$chunkInfo['group_key'] => collect($chunkInfo['group_data'])->map(fn($items) => collect($items))]);
+                    $chunkRegions = collect();
+                } else {
+                    $chunkDays = collect([$chunkInfo['group_key'] => collect($chunkInfo['group_data'])]);
+                    $chunkRegions = collect();
+                }
+
+                $chunkViewData = array_merge($baseViewData, [
+                    'days' => $chunkDays,
+                    'regions' => $chunkRegions,
+                    'show_legend' => $chunkInfo['show_legend'],
+                    'page_start' => ($pageOffset !== false) ? $pageOffset - 1 : 0,
+                ]);
+
+                $chunk = PDF::loadView('pdf', $chunkViewData)
+                    ->setPaper([0, 0, $width, $height]);
+                $chunk->render();
+
+                $pageCount = $chunk->getDomPDF()->getCanvas()->get_page_count();
+                if ($pageOffset !== false) {
+                    $pageOffset += $pageCount;
+                }
+
+                // Write to temp file immediately instead of accumulating in memory
+                $tmpFile = tempnam(sys_get_temp_dir(), 'pdf_chunk_');
+                file_put_contents($tmpFile, $chunk->output());
+                $chunkFiles[] = $tmpFile;
+
+                unset($chunk, $chunkDays, $chunkRegions, $chunkViewData);
+                $chunks[$index] = null; // free chunk data
+                gc_collect_cycles();
             }
+            unset($chunks);
 
-            $chunkViewData = array_merge($baseViewData, [
-                'days' => $chunkDays,
-                'regions' => $chunkRegions,
-                'show_legend' => $chunkInfo['show_legend'],
-                'page_start' => ($pageOffset !== false) ? $pageOffset - 1 : 0,
-            ]);
-
-            $chunk = PDF::loadView('pdf', $chunkViewData)
-                ->setPaper([0, 0, $width, $height]);
-            $chunk->render();
-
-            $pageCount = $chunk->getDomPDF()->getCanvas()->get_page_count();
-            if ($pageOffset !== false) {
-                $pageOffset += $pageCount;
+            $mergedPdf = $this->mergePdfFiles(array_values(array_filter([$covers['front'], ...$chunkFiles, $covers['back']])));
+        } finally {
+            foreach ($chunkFiles as $tmpFile) {
+                @unlink($tmpFile);
             }
-
-            // Write to temp file immediately instead of accumulating in memory
-            $tmpFile = tempnam(sys_get_temp_dir(), 'pdf_chunk_');
-            file_put_contents($tmpFile, $chunk->output());
-            $chunkFiles[] = $tmpFile;
-
-            unset($chunk, $chunkDays, $chunkRegions, $chunkViewData);
-            $chunks[$index] = null; // free chunk data
-            gc_collect_cycles();
-        }
-        unset($chunks);
-
-        // Merge chunks with FPDI
-        $merger = new Fpdi();
-
-        foreach ($chunkFiles as $tmpFile) {
-            $pageCount = $merger->setSourceFile($tmpFile);
-            for ($i = 1; $i <= $pageCount; $i++) {
-                $tplId = $merger->importPage($i);
-                $size = $merger->getTemplateSize($tplId);
-                $merger->AddPage($size['orientation'], [$size['width'], $size['height']]);
-                $merger->useTemplate($tplId);
-            }
-            @unlink($tmpFile);
         }
 
-        $mergedPdf = $merger->Output('S');
-        unset($merger);
-
-        if ($stream) {
-            return response($mergedPdf, 200, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $pdf_name . '"',
-            ]);
-        }
-
-        return response($mergedPdf, 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . $pdf_name . '"',
-        ]);
+        return $this->pdfResponse($mergedPdf, $pdf_name, $stream);
     }
 }

@@ -186,4 +186,82 @@ class CoverPagesTest extends TestCase
         $this->assertStringContainsString('password', $response->getContent());
         Http::assertNothingSent();
     }
+
+    #[Test]
+    public function covers_wrap_the_directory_on_the_fast_path(): void
+    {
+        $response = $this->post('/pdf', [
+            'json' => 'https://example.test/feed',
+            'front' => $this->upload('front.pdf', $this->coverPdf('FRONT-COVER-MARK', 306, 792, 2)),
+            'back' => $this->upload('back.pdf', $this->coverPdf('BACK-COVER-MARK')),
+        ]);
+
+        $response->assertOk();
+        $this->assertSame('application/pdf', $response->headers->get('Content-Type'));
+        $this->assertStringContainsString('attachment; filename=', $response->headers->get('Content-Disposition'));
+
+        $pdf = $response->getContent();
+        $insideOnly = $this->get('/pdf?json=https://example.test/feed')->getContent();
+
+        $this->assertSame($this->countPdfPages($insideOnly) + 3, $this->countPdfPages($pdf));
+        $this->assertLessThan(strpos($pdf, 'BACK-COVER-MARK'), strpos($pdf, 'FRONT-COVER-MARK'), 'Front matter must precede back matter.');
+    }
+
+    #[Test]
+    public function stream_mode_with_covers_is_served_inline(): void
+    {
+        $response = $this->post('/pdf', [
+            'json' => 'https://example.test/feed',
+            'mode' => 'stream',
+            'front' => $this->upload('front.pdf', $this->coverPdf('FRONT')),
+        ]);
+
+        $response->assertOk();
+        $this->assertStringStartsWith('inline;', $response->headers->get('Content-Disposition'));
+    }
+
+    #[Test]
+    public function only_a_back_cover_is_appended(): void
+    {
+        $response = $this->post('/pdf', [
+            'json' => 'https://example.test/feed',
+            'back' => $this->upload('back.pdf', $this->coverPdf('BACK-COVER-MARK')),
+        ]);
+
+        $response->assertOk();
+        $insideOnly = $this->get('/pdf?json=https://example.test/feed')->getContent();
+        $this->assertSame($this->countPdfPages($insideOnly) + 1, $this->countPdfPages($response->getContent()));
+    }
+
+    #[Test]
+    public function covers_wrap_the_directory_on_the_chunked_path(): void
+    {
+        Http::fake(['example.test/large' => Http::response($this->largeMultiRegionFeed(60), 200)]);
+
+        $response = $this->post('/pdf', [
+            'json' => 'https://example.test/large',
+            'group_by' => 'region-day',
+            'options' => ['pagebreaks'],
+            'front' => $this->upload('front.pdf', $this->coverPdf('FRONT-COVER-MARK')),
+            'back' => $this->upload('back.pdf', $this->coverPdf('BACK-COVER-MARK', 306, 792, 2)),
+        ]);
+
+        $response->assertOk();
+        $pdf = $response->getContent();
+        $this->assertSame(1 + 60 + 2, $this->countPdfPages($pdf), 'Expected front (1) + one page per region (60) + back (2).');
+        $this->assertLessThan(strpos($pdf, 'BACK-COVER-MARK'), strpos($pdf, 'FRONT-COVER-MARK'));
+    }
+
+    #[Test]
+    public function a_word_style_cover_merges_end_to_end(): void
+    {
+        $response = $this->post('/pdf', [
+            'json' => 'https://example.test/feed',
+            'front' => $this->upload('front.pdf', file_get_contents(base_path('tests/Fixtures/cover-xref-stream.pdf'))),
+        ]);
+
+        $response->assertOk();
+        $insideOnly = $this->get('/pdf?json=https://example.test/feed')->getContent();
+        $this->assertSame($this->countPdfPages($insideOnly) + 1, $this->countPdfPages($response->getContent()));
+    }
 }
