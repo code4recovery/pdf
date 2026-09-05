@@ -439,38 +439,6 @@ function Screen2({
                     ))}
                 </div>
 
-                {/* Cover uploads */}
-                <div className="col-12 mb-4">
-                    <label className="form-label fw-bold">Cover Pages (optional)</label>
-                    <p className="form-text mt-0">
-                        Attach PDFs to print before and after the directory. They must be the same
-                        paper size as the width and height above, and at most 5 MB and 10 pages each.
-                        Use <strong>Start #</strong> to continue page numbering after your front pages.
-                    </p>
-                    <div className="row">
-                        <div className="col-md-6 mb-2">
-                            <label htmlFor="front" className="form-label">Front page(s)</label>
-                            <input
-                                type="file"
-                                accept="application/pdf"
-                                id="front"
-                                className="form-control"
-                                onChange={(e) => setFrontCover(e.target.files[0] || null)}
-                            />
-                        </div>
-                        <div className="col-md-6 mb-2">
-                            <label htmlFor="back" className="form-label">Back page(s)</label>
-                            <input
-                                type="file"
-                                accept="application/pdf"
-                                id="back"
-                                className="form-control"
-                                onChange={(e) => setBackCover(e.target.files[0] || null)}
-                            />
-                        </div>
-                    </div>
-                </div>
-
                 {/* Mode radios */}
                 <div className="col-md-6 mb-4">
                     <label className="form-label fw-bold">Mode</label>
@@ -509,6 +477,38 @@ function Screen2({
                             </label>
                         </div>
                     ))}
+                </div>
+
+                {/* Cover uploads */}
+                <div className="col-12 mb-4">
+                    <label className="form-label fw-bold">Cover Pages (optional)</label>
+                    <p className="form-text mt-0">
+                        Attach PDFs to print before and after the directory. They must be the same
+                        paper size as the width and height above, and at most 5 MB and 10 pages each.
+                        Use <strong>Start #</strong> to continue page numbering after your front pages.
+                    </p>
+                    <div className="row">
+                        <div className="col-md-6 mb-2">
+                            <label htmlFor="front" className="form-label">Front page(s)</label>
+                            <input
+                                type="file"
+                                accept="application/pdf"
+                                id="front"
+                                className="form-control"
+                                onChange={(e) => setFrontCover(e.target.files[0] || null)}
+                            />
+                        </div>
+                        <div className="col-md-6 mb-2">
+                            <label htmlFor="back" className="form-label">Back page(s)</label>
+                            <input
+                                type="file"
+                                accept="application/pdf"
+                                id="back"
+                                className="form-control"
+                                onChange={(e) => setBackCover(e.target.files[0] || null)}
+                            />
+                        </div>
+                    </div>
                 </div>
 
                 {/* Regions */}
