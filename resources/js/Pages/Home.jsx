@@ -637,12 +637,13 @@ function RegionFilter({ availableRegions, selectedRegions, setSelectedRegions, i
 
     return (
         <div className="col-12 mb-4">
+            <label className="form-label fw-bold">Filter by Regions</label>
             <button
                 className="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center"
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
             >
-                <span>Filter by Regions</span>
+                <span>Choose Regions</span>
                 <span style={{
                     transition: 'transform 0.2s ease',
                     transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
