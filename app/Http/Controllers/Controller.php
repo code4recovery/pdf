@@ -8,17 +8,29 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Exception;
 use setasign\Fpdi\Fpdi;
+use setasign\Fpdi\FpdiException;
+use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
 
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     private static Spec $spec;
+
+    /** Maximum size of each uploaded cover PDF, in kilobytes (5 MB). */
+    private const COVER_MAX_KB = 5120;
+
+    /** Maximum page count of each uploaded cover PDF. */
+    private const COVER_MAX_PAGES = 10;
+
+    /** Allowed difference between a cover page and the requested paper size, in points (1/8 inch). */
+    private const COVER_SIZE_TOLERANCE_PT = 9;
 
     public function __construct()
     {
@@ -187,6 +199,99 @@ class Controller extends BaseController
         return $regionList;
     }
 
+    /**
+     * Validate the optional front/back cover uploads and confirm every page of each
+     * matches the requested paper size. Runs before the feed is fetched so a bad upload
+     * costs nothing.
+     *
+     * @return array{front: ?string, back: ?string} Paths to PHP's request-scoped upload temp files
+     * @throws Exception With a user-facing message when a cover cannot be used
+     */
+    private function validateCovers(float $width, float $height): array
+    {
+        $rules = ['nullable', 'file', 'mimetypes:application/pdf', 'max:' . self::COVER_MAX_KB];
+
+        $validator = Validator::make(request()->all(), [
+            'front' => $rules,
+            'back' => $rules,
+        ], [
+            'file' => 'The :attribute cover failed to upload.',
+            'mimetypes' => 'The :attribute cover must be a PDF file.',
+            'max' => 'The :attribute cover must be 5 MB or smaller.',
+        ]);
+
+        if ($validator->fails()) {
+            throw new Exception($validator->errors()->first());
+        }
+
+        $covers = ['front' => null, 'back' => null];
+
+        foreach (array_keys($covers) as $side) {
+            $file = request()->file($side);
+            if ($file === null) {
+                continue;
+            }
+
+            if (file_get_contents($file->getRealPath(), false, null, 0, 5) !== '%PDF-') {
+                throw new Exception(sprintf('The %s cover must be a PDF file.', $side));
+            }
+
+            $this->assertCoverMatchesPaper($side, $file->getRealPath(), $width, $height);
+            $covers[$side] = $file->getRealPath();
+        }
+
+        return $covers;
+    }
+
+    /**
+     * Open a cover with FPDI and check its page count and the size of every page.
+     *
+     * @throws Exception With a user-facing message naming the offending size or problem
+     */
+    private function assertCoverMatchesPaper(string $side, string $path, float $width, float $height): void
+    {
+        $reader = new Fpdi('P', 'pt');
+
+        try {
+            $pageCount = $reader->setSourceFile($path);
+
+            if ($pageCount > self::COVER_MAX_PAGES) {
+                throw new Exception(sprintf('The %s cover has %d pages; the limit is %d.', $side, $pageCount, self::COVER_MAX_PAGES));
+            }
+
+            for ($page = 1; $page <= $pageCount; $page++) {
+                $size = $reader->getTemplateSize($reader->importPage($page));
+
+                if (abs($size['width'] - $width) > self::COVER_SIZE_TOLERANCE_PT
+                    || abs($size['height'] - $height) > self::COVER_SIZE_TOLERANCE_PT) {
+                    throw new Exception(sprintf(
+                        'Your %s cover is %s x %s in (page %d) but the directory is %s x %s in. Cover pages must match the paper size.',
+                        $side,
+                        $this->inches($size['width']),
+                        $this->inches($size['height']),
+                        $page,
+                        $this->inches($width),
+                        $this->inches($height)
+                    ));
+                }
+            }
+        } catch (FpdiException $e) {
+            $hint = ($e instanceof CrossReferenceException && $e->getCode() === CrossReferenceException::ENCRYPTED)
+                ? 'It is password-protected; remove the password and try again.'
+                : 'Please re-export it as a standard PDF and try again.';
+
+            throw new Exception(sprintf('The %s cover could not be read. %s', $side, $hint));
+        }
+    }
+
+    /**
+     * Format a length in points as inches with up to two decimals and no trailing zeros.
+     */
+    private function inches(float $points): string
+    {
+        return rtrim(rtrim(number_format($points / 72, 2, '.', ''), '0'), '.');
+    }
+
     public function home(): \Inertia\Response
     {
         $json = request('json');
@@ -299,6 +404,12 @@ class Controller extends BaseController
         $options = request('options', []);
         $group_by = request('group_by', 'day-region');
         $types = self::$spec->getTypesByLanguage($language);
+
+        try {
+            $covers = $this->validateCovers($width, $height);
+        } catch (Exception $e) {
+            return response($e->getMessage(), 422);
+        }
 
         // Set PDF filename based on choices
         $pdf_name = sprintf(
