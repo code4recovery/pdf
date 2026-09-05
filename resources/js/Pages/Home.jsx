@@ -32,6 +32,8 @@ export default function Home({
     const [fontSize, setFontSize] = useState('12');
     const [groupBy, setGroupBy] = useState('day-region');
     const [mode, setMode] = useState('download');
+    const [frontCover, setFrontCover] = useState(null);
+    const [backCover, setBackCover] = useState(null);
     const [selectedOptions, setSelectedOptions] = useState(() => {
         if (!optionDefs) return [];
         return Object.entries(optionDefs)
@@ -74,30 +76,30 @@ export default function Home({
         e.preventDefault();
         setPdfError(null);
 
-        const params = new URLSearchParams();
-        params.set('json', initialJson);
-        params.set('width', width);
-        params.set('height', height);
-        if (numbering) params.set('numbering', numbering);
-        params.set('language', language);
-        params.set('font', font);
-        params.set('font_size', fontSize);
-        params.set('group_by', groupBy);
-        params.set('mode', mode);
-        if (type) params.set('type', type);
-        selectedOptions.forEach((opt) => params.append('options[]', opt));
-        selectedRegions.forEach((r) => params.append('regions[]', r));
-
-        const pdfUrl = `/pdf?${params.toString()}`;
+        const formData = new FormData();
+        formData.set('json', initialJson);
+        formData.set('width', width);
+        formData.set('height', height);
+        formData.set('numbering', numbering);
+        formData.set('language', language);
+        formData.set('font', font);
+        formData.set('font_size', fontSize);
+        formData.set('group_by', groupBy);
+        formData.set('mode', mode);
+        if (type) formData.set('type', type);
+        selectedOptions.forEach((opt) => formData.append('options[]', opt));
+        selectedRegions.forEach((r) => formData.append('regions[]', r));
+        if (frontCover) formData.set('front', frontCover);
+        if (backCover) formData.set('back', backCover);
 
         if (mode === 'stream') {
-            window.open(pdfUrl, '_blank');
+            submitInNewTab(formData);
             return;
         }
 
         // Download mode: fetch as blob with spinner
         setGenerating(true);
-        fetch(pdfUrl)
+        fetch('/pdf', { method: 'POST', body: formData })
             .then((res) => {
                 if (!res.ok) {
                     return res.text().then((text) => {
@@ -124,6 +126,36 @@ export default function Home({
             .finally(() => {
                 setGenerating(false);
             });
+    }
+
+    // window.open cannot carry a POST body, so stream mode submits a throwaway
+    // multipart form into a new tab. Files are attached via DataTransfer.
+    function submitInNewTab(formData) {
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.action = '/pdf';
+        form.enctype = 'multipart/form-data';
+        form.target = '_blank';
+        form.hidden = true;
+
+        for (const [key, value] of formData.entries()) {
+            const input = document.createElement('input');
+            input.name = key;
+            if (value instanceof File) {
+                input.type = 'file';
+                const transfer = new DataTransfer();
+                transfer.items.add(value);
+                input.files = transfer.files;
+            } else {
+                input.type = 'hidden';
+                input.value = value;
+            }
+            form.appendChild(input);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+        form.remove();
     }
 
     // Option checkbox toggle
@@ -185,6 +217,10 @@ export default function Home({
                             mode={mode}
                             setMode={setMode}
                             modes={modes}
+                            frontCover={frontCover}
+                            setFrontCover={setFrontCover}
+                            backCover={backCover}
+                            setBackCover={setBackCover}
                             selectedOptions={selectedOptions}
                             toggleOption={toggleOption}
                             optionDefs={optionDefs}
@@ -267,6 +303,8 @@ function Screen2({
     fontSize, setFontSize, fontSizes,
     groupBy, setGroupBy, groupByOptions,
     mode, setMode, modes,
+    frontCover, setFrontCover,
+    backCover, setBackCover,
     selectedOptions, toggleOption, optionDefs,
     availableRegions, selectedRegions, setSelectedRegions,
     regionsOpen, setRegionsOpen,
@@ -399,6 +437,38 @@ function Screen2({
                             </label>
                         </div>
                     ))}
+                </div>
+
+                {/* Cover uploads */}
+                <div className="col-12 mb-4">
+                    <label className="form-label fw-bold">Cover Pages (optional)</label>
+                    <p className="form-text mt-0">
+                        Attach PDFs to print before and after the directory. They must be the same
+                        paper size as the width and height above, and at most 5 MB and 10 pages each.
+                        Use <strong>Start #</strong> to continue page numbering after your front pages.
+                    </p>
+                    <div className="row">
+                        <div className="col-md-6 mb-2">
+                            <label htmlFor="front" className="form-label">Front page(s)</label>
+                            <input
+                                type="file"
+                                accept="application/pdf"
+                                id="front"
+                                className="form-control"
+                                onChange={(e) => setFrontCover(e.target.files[0] || null)}
+                            />
+                        </div>
+                        <div className="col-md-6 mb-2">
+                            <label htmlFor="back" className="form-label">Back page(s)</label>
+                            <input
+                                type="file"
+                                accept="application/pdf"
+                                id="back"
+                                className="form-control"
+                                onChange={(e) => setBackCover(e.target.files[0] || null)}
+                            />
+                        </div>
+                    </div>
                 </div>
 
                 {/* Mode radios */}
