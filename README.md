@@ -19,6 +19,7 @@ Then you can adjust how your schedule looks:
 -   **Filter by Regions** lets you uncheck regions or sub-regions you don't want to include.
 -   **Options** can add a meeting types legend, page breaks after each group, the full address on every meeting, and 24-hour time.
 -   **Mode** either downloads the PDF or streams it in a new browser tab.
+-   **Cover pages** let you attach a front PDF and a back PDF. The service merges them around the schedule and returns one file. Covers must be the same paper size you set above (within 1/8 inch), and at most 5 MB and 10 pages each.
 
 ## Assemble a PDF
 
@@ -27,11 +28,8 @@ This service provides the inside pages of a meeting book. To create the outer pa
 1. Decide on a paper size. The default is 4.25 x 11, so that it can be printed on standard US Letter and stapled down the middle.
 1. Create a Google or Word doc at that paper size. [Here is an example "before" Google doc](https://docs.google.com/document/d/1bmDg2j8cyalcqnw5GV1JJll7g8Av7uW6O6o4kVADwEc/edit?usp=sharing) you can copy. (Note: Google Docs doesn't support custom paper sizes, but the [Page Sizer app](https://workspace.google.com/marketplace/app/page_sizer/595382898724) will enable that functionality).
 1. Download it as a PDF, taking note of how many pages it is.
-1. Now generate your inside pages at [pdf.code4recovery.org](https://pdf.code4recovery.org). Set the paper size and starting page number according to the results of the steps above.
-1. Open the downloaded PDF document locally. I used Preview (on Mac) for this. Then you can drag your "Meeting Directory Before" PDF to the start of this document, in the thumbnails area on the left side. (Note: I found that it works better if I add my Google Doc _to_ my generated PDF, and not vice-versa).
-1. If you don't want to add content after the meetings, you're done! If you do then [here is an example "after" doc](https://docs.google.com/document/d/1whm-ZL1JbZFinSRnbt4uKvFM6Hhv8e246TYtadsnVZQ/edit?usp=sharing) you can copy.
-1. Set the page numbers to start where they need to and save the PDF locally.
-1. Now drag it to the bottom of your thumbnails in Preview and hit save. Now you have a complete meeting schedule PDF.
+1. Now generate your inside pages at [pdf.code4recovery.org](https://pdf.code4recovery.org). Set the paper size and starting page number according to the results of the steps above, attach your front PDF (and back PDF, if you have one) under **Cover pages**, and generate. The download is a single merged PDF. If you want content after the meetings, [here is an example "after" doc](https://docs.google.com/document/d/1whm-ZL1JbZFinSRnbt4uKvFM6Hhv8e246TYtadsnVZQ/edit?usp=sharing) you can copy.
+1. If you would rather assemble by hand, open the downloaded inside pages in a PDF editor such as Preview on Mac and drag your cover PDFs before and after them in the thumbnail sidebar.
 
 ## Booklet printing
 
