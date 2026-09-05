@@ -28,3 +28,4 @@ nginx.conf
 /.mcp.json
 /AGENTS.md
 /CLAUDE.md
+auth.json
