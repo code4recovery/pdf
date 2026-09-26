@@ -8,17 +8,29 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Exception;
 use setasign\Fpdi\Fpdi;
+use setasign\Fpdi\FpdiException;
+use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
 
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     private static Spec $spec;
+
+    /** Maximum size of each uploaded cover PDF, in kilobytes (5 MB). */
+    private const COVER_MAX_KB = 5120;
+
+    /** Maximum page count of each uploaded cover PDF. */
+    private const COVER_MAX_PAGES = 10;
+
+    /** Allowed difference between a cover page and the requested paper size, in points (1/8 inch). */
+    private const COVER_SIZE_TOLERANCE_PT = 9;
 
     public function __construct()
     {
@@ -187,6 +199,129 @@ class Controller extends BaseController
         return $regionList;
     }
 
+    /**
+     * Validate the optional front/back cover uploads and confirm every page of each
+     * matches the requested paper size. Runs before the feed is fetched so a bad upload
+     * costs nothing.
+     *
+     * @return array{front: ?string, back: ?string} Paths to PHP's request-scoped upload temp files
+     * @throws Exception With a user-facing message when a cover cannot be used
+     */
+    private function validateCovers(float $width, float $height): array
+    {
+        $rules = ['nullable', 'file', 'mimetypes:application/pdf', 'max:' . self::COVER_MAX_KB];
+
+        $validator = Validator::make(request()->all(), [
+            'front' => $rules,
+            'back' => $rules,
+        ], [
+            'file' => 'The :attribute cover failed to upload.',
+            'mimetypes' => 'The :attribute cover must be a PDF file.',
+            'max' => 'The :attribute cover must be 5 MB or smaller.',
+        ]);
+
+        if ($validator->fails()) {
+            throw new Exception($validator->errors()->first());
+        }
+
+        $covers = ['front' => null, 'back' => null];
+
+        foreach (array_keys($covers) as $side) {
+            $file = request()->file($side);
+            if ($file === null) {
+                continue;
+            }
+
+            if (file_get_contents($file->getRealPath(), false, null, 0, 5) !== '%PDF-') {
+                throw new Exception(sprintf('The %s cover must be a PDF file.', $side));
+            }
+
+            $this->assertCoverMatchesPaper($side, $file->getRealPath(), $width, $height);
+            $covers[$side] = $file->getRealPath();
+        }
+
+        return $covers;
+    }
+
+    /**
+     * Open a cover with FPDI and check its page count and the size of every page.
+     *
+     * @throws Exception With a user-facing message naming the offending size or problem
+     */
+    private function assertCoverMatchesPaper(string $side, string $path, float $width, float $height): void
+    {
+        $reader = new Fpdi('P', 'pt');
+
+        try {
+            $pageCount = $reader->setSourceFile($path);
+
+            if ($pageCount > self::COVER_MAX_PAGES) {
+                throw new Exception(sprintf('The %s cover has %d pages; the limit is %d.', $side, $pageCount, self::COVER_MAX_PAGES));
+            }
+
+            for ($page = 1; $page <= $pageCount; $page++) {
+                $size = $reader->getTemplateSize($reader->importPage($page));
+
+                if (abs($size['width'] - $width) > self::COVER_SIZE_TOLERANCE_PT
+                    || abs($size['height'] - $height) > self::COVER_SIZE_TOLERANCE_PT) {
+                    throw new Exception(sprintf(
+                        'Your %s cover is %s x %s in (page %d) but the directory is %s x %s in. Cover pages must match the paper size.',
+                        $side,
+                        $this->inches($size['width']),
+                        $this->inches($size['height']),
+                        $page,
+                        $this->inches($width),
+                        $this->inches($height)
+                    ));
+                }
+            }
+        } catch (FpdiException $e) {
+            $hint = ($e instanceof CrossReferenceException && $e->getCode() === CrossReferenceException::ENCRYPTED)
+                ? 'It is password-protected; remove the password and try again.'
+                : 'Please re-export it as a standard PDF and try again.';
+
+            throw new Exception(sprintf('The %s cover could not be read. %s', $side, $hint));
+        }
+    }
+
+    /**
+     * Format a length in points as inches with up to two decimals and no trailing zeros.
+     */
+    private function inches(float $points): string
+    {
+        return rtrim(rtrim(number_format($points / 72, 2, '.', ''), '0'), '.');
+    }
+
+    /**
+     * Merge PDF files page-by-page, in order, into one document.
+     *
+     * @param list<string> $paths
+     */
+    private function mergePdfFiles(array $paths): string
+    {
+        $merger = new Fpdi();
+
+        foreach ($paths as $path) {
+            $pageCount = $merger->setSourceFile($path);
+            for ($i = 1; $i <= $pageCount; $i++) {
+                $tplId = $merger->importPage($i);
+                $size = $merger->getTemplateSize($tplId);
+                $merger->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                $merger->useTemplate($tplId);
+            }
+        }
+
+        return $merger->Output('S');
+    }
+
+    private function pdfResponse(string $bytes, string $filename, bool $stream): \Illuminate\Http\Response
+    {
+        return response($bytes, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => ($stream ? 'inline' : 'attachment') . '; filename="' . $filename . '"',
+        ]);
+    }
+
     public function home(): \Inertia\Response
     {
         $json = request('json');
@@ -299,6 +434,12 @@ class Controller extends BaseController
         $options = request('options', []);
         $group_by = request('group_by', 'day-region');
         $types = self::$spec->getTypesByLanguage($language);
+
+        try {
+            $covers = $this->validateCovers($width, $height);
+        } catch (Exception $e) {
+            return response($e->getMessage(), 422);
+        }
 
         // Set PDF filename based on choices
         $pdf_name = sprintf(
@@ -706,7 +847,20 @@ class Controller extends BaseController
             $pdf = PDF::loadView('pdf', $viewData)
                 ->setPaper([0, 0, $width, $height]);
 
-            return ($stream) ? $pdf->stream() : $pdf->download($pdf_name);
+            if ($covers['front'] === null && $covers['back'] === null) {
+                return ($stream) ? $pdf->stream() : $pdf->download($pdf_name);
+            }
+
+            $insideFile = tempnam(sys_get_temp_dir(), 'pdf_inside_');
+            try {
+                file_put_contents($insideFile, $pdf->output());
+                unset($pdf);
+                $mergedPdf = $this->mergePdfFiles(array_values(array_filter([$covers['front'], $insideFile, $covers['back']])));
+            } finally {
+                @unlink($insideFile);
+            }
+
+            return $this->pdfResponse($mergedPdf, $pdf_name, $stream);
         }
 
         // Build chunk data arrays from the grouped collections, then free all
@@ -730,72 +884,53 @@ class Controller extends BaseController
         $pageOffset = ($numbering !== false) ? (int) $numbering : false;
         $chunkFiles = [];
 
-        foreach ($chunks as $index => $chunkInfo) {
-            if ($group_by === 'region-day') {
-                $chunkDays = collect();
-                $chunkRegions = collect([$chunkInfo['group_key'] => collect($chunkInfo['group_data'])->map(fn($items) => collect($items))]);
-            } elseif ($group_by === 'day-region') {
-                $chunkDays = collect([$chunkInfo['group_key'] => collect($chunkInfo['group_data'])->map(fn($items) => collect($items))]);
-                $chunkRegions = collect();
-            } else {
-                $chunkDays = collect([$chunkInfo['group_key'] => collect($chunkInfo['group_data'])]);
-                $chunkRegions = collect();
+        try {
+            foreach ($chunks as $index => $chunkInfo) {
+                if ($group_by === 'region-day') {
+                    $chunkDays = collect();
+                    $chunkRegions = collect([$chunkInfo['group_key'] => collect($chunkInfo['group_data'])->map(fn($items) => collect($items))]);
+                } elseif ($group_by === 'day-region') {
+                    $chunkDays = collect([$chunkInfo['group_key'] => collect($chunkInfo['group_data'])->map(fn($items) => collect($items))]);
+                    $chunkRegions = collect();
+                } else {
+                    $chunkDays = collect([$chunkInfo['group_key'] => collect($chunkInfo['group_data'])]);
+                    $chunkRegions = collect();
+                }
+
+                $chunkViewData = array_merge($baseViewData, [
+                    'days' => $chunkDays,
+                    'regions' => $chunkRegions,
+                    'show_legend' => $chunkInfo['show_legend'],
+                    'page_start' => ($pageOffset !== false) ? $pageOffset - 1 : 0,
+                ]);
+
+                $chunk = PDF::loadView('pdf', $chunkViewData)
+                    ->setPaper([0, 0, $width, $height]);
+                $chunk->render();
+
+                $pageCount = $chunk->getDomPDF()->getCanvas()->get_page_count();
+                if ($pageOffset !== false) {
+                    $pageOffset += $pageCount;
+                }
+
+                // Write to temp file immediately instead of accumulating in memory
+                $tmpFile = tempnam(sys_get_temp_dir(), 'pdf_chunk_');
+                file_put_contents($tmpFile, $chunk->output());
+                $chunkFiles[] = $tmpFile;
+
+                unset($chunk, $chunkDays, $chunkRegions, $chunkViewData);
+                $chunks[$index] = null; // free chunk data
+                gc_collect_cycles();
             }
+            unset($chunks);
 
-            $chunkViewData = array_merge($baseViewData, [
-                'days' => $chunkDays,
-                'regions' => $chunkRegions,
-                'show_legend' => $chunkInfo['show_legend'],
-                'page_start' => ($pageOffset !== false) ? $pageOffset - 1 : 0,
-            ]);
-
-            $chunk = PDF::loadView('pdf', $chunkViewData)
-                ->setPaper([0, 0, $width, $height]);
-            $chunk->render();
-
-            $pageCount = $chunk->getDomPDF()->getCanvas()->get_page_count();
-            if ($pageOffset !== false) {
-                $pageOffset += $pageCount;
+            $mergedPdf = $this->mergePdfFiles(array_values(array_filter([$covers['front'], ...$chunkFiles, $covers['back']])));
+        } finally {
+            foreach ($chunkFiles as $tmpFile) {
+                @unlink($tmpFile);
             }
-
-            // Write to temp file immediately instead of accumulating in memory
-            $tmpFile = tempnam(sys_get_temp_dir(), 'pdf_chunk_');
-            file_put_contents($tmpFile, $chunk->output());
-            $chunkFiles[] = $tmpFile;
-
-            unset($chunk, $chunkDays, $chunkRegions, $chunkViewData);
-            $chunks[$index] = null; // free chunk data
-            gc_collect_cycles();
-        }
-        unset($chunks);
-
-        // Merge chunks with FPDI
-        $merger = new Fpdi();
-
-        foreach ($chunkFiles as $tmpFile) {
-            $pageCount = $merger->setSourceFile($tmpFile);
-            for ($i = 1; $i <= $pageCount; $i++) {
-                $tplId = $merger->importPage($i);
-                $size = $merger->getTemplateSize($tplId);
-                $merger->AddPage($size['orientation'], [$size['width'], $size['height']]);
-                $merger->useTemplate($tplId);
-            }
-            @unlink($tmpFile);
         }
 
-        $mergedPdf = $merger->Output('S');
-        unset($merger);
-
-        if ($stream) {
-            return response($mergedPdf, 200, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $pdf_name . '"',
-            ]);
-        }
-
-        return response($mergedPdf, 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . $pdf_name . '"',
-        ]);
+        return $this->pdfResponse($mergedPdf, $pdf_name, $stream);
     }
 }
