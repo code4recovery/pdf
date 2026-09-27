@@ -44,6 +44,14 @@ You will need a duplex printer and a program such as [Adobe Reader](https://get.
 
 This should print a stack of pages that you can fold and staple down the middle. Voila!
 
+## Usage analytics
+
+This service records anonymous usage data so we can see how the tool is being used.
+
+**What is recorded:** the type of request (form opened or PDF generated) and its outcome, a fingerprint and host for the feed used (not the feed URL itself), the source type (JSON, Google Sheet, or TSML), the host of the site that linked here (if any), the number of meetings and regions in the schedule, how long the PDF took to render and how much memory it used, and the form settings you chose (paper size, language, grouping, etc.).
+
+**What is not recorded:** feed URLs or Google Sheet IDs, IP addresses, the meeting data itself, or any cookies or identifying information about who is visiting.
+
 ## Next steps
 
 -   [ ] printing screencast video
