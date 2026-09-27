@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\LoginController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,3 +17,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [Controller::class, 'home'])->middleware('usage')->name('home');
 Route::match(['get', 'post'], '/pdf', [Controller::class, 'pdf'])->middleware('usage')->name('pdf');
+
+Route::get('/login', [LoginController::class, 'show'])->middleware('guest')->name('login');
+Route::post('/login', [LoginController::class, 'store'])->middleware(['guest', 'throttle:5,1']);
+Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
