@@ -39,7 +39,7 @@ final class UsageReport
      */
     public function monthly(int $months = 24): array
     {
-        $cutoff = now()->subMonths($months)->startOfMonth();
+        $cutoff = now()->subMonthsNoOverflow($months - 1)->startOfMonth();
 
         $buckets = [];
 

@@ -33,12 +33,17 @@ class RecordUsage
     /** @var list<string> */
     private const OPTION_KEYS = ['legend', 'pagebreaks', 'long_address', 'time_24hr'];
 
+    /** A host longer than this can never be a valid DNS name (max 253 chars). */
+    private const MAX_HOST_LENGTH = 253;
+
     public function __construct(private readonly UsageRecorder $recorder)
     {
     }
 
     public function handle(Request $request, Closure $next): Response
     {
+        $this->recorder->reset();
+
         return $next($request);
     }
 
@@ -110,6 +115,10 @@ class RecordUsage
         }
 
         $host = preg_replace('/^www\./', '', strtolower($host));
+
+        if (strlen($host) > self::MAX_HOST_LENGTH) {
+            return null;
+        }
 
         return $host === strtolower($request->getHost()) ? null : $host;
     }

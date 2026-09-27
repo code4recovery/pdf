@@ -56,4 +56,21 @@ final class UsageRecorder
     {
         return $this->chunked;
     }
+
+    /**
+     * Clears all recorded facts. `RecordUsage::handle()` calls this before
+     * every request: the recorder is a scoped (per-container-lifetime)
+     * singleton, and in a long-running process (e.g. one PHPUnit test
+     * issuing several requests) the container isn't rebuilt between them,
+     * so without this a failure on one request would still be visible on
+     * the next.
+     */
+    public function reset(): void
+    {
+        $this->outcome = null;
+        $this->upstreamStatus = null;
+        $this->meetingCount = null;
+        $this->regionCount = null;
+        $this->chunked = null;
+    }
 }

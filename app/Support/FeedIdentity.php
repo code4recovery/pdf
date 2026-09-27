@@ -9,6 +9,9 @@ namespace App\Support;
  */
 final class FeedIdentity
 {
+    /** A host longer than this can never be a valid DNS name (max 253 chars). */
+    private const MAX_HOST_LENGTH = 253;
+
     public function __construct(
         public readonly ?string $hash,
         public readonly ?string $host,
@@ -62,7 +65,7 @@ final class FeedIdentity
 
         return new self(
             hash('sha256', $normalized),
-            $host,
+            strlen($host) > self::MAX_HOST_LENGTH ? null : $host,
             self::detectSourceType($path, $queryParams),
         );
     }

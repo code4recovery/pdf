@@ -201,6 +201,38 @@ class RecordUsageTest extends TestCase
     }
 
     #[Test]
+    public function long_referrer_host_is_dropped(): void
+    {
+        $longHost = str_repeat('a', 250) . '.com';
+
+        $response = $this->withHeaders(['Referer' => 'https://' . $longHost . '/meetings/'])
+            ->get('/?json=https://example.test/feed');
+
+        $response->assertOk();
+        $this->assertNull(UsageEvent::first()->referrer_host);
+    }
+
+    #[Test]
+    public function recorder_state_does_not_leak_between_requests(): void
+    {
+        Http::fake([
+            'broken.test/feed' => Http::response(null, 401),
+            'example.test/feed' => Http::response(
+                json_decode(file_get_contents(base_path('tests/Fixtures/meetings.json')), true),
+                200
+            ),
+        ]);
+
+        $this->get('/pdf?json=https://broken.test/feed')->assertStatus(422);
+        $this->get('/pdf?json=https://example.test/feed')->assertOk();
+
+        $events = UsageEvent::orderBy('id')->get();
+
+        $this->assertSame('fetch_failed', $events[0]->outcome);
+        $this->assertSame('success', $events[1]->outcome);
+    }
+
+    #[Test]
     public function form_opened_is_recorded_with_referrer(): void
     {
         $response = $this->withHeaders(['Referer' => 'https://www.district9.org/meetings/'])

@@ -84,4 +84,16 @@ class FeedIdentityTest extends TestCase
         $this->assertNull($identity->host);
         $this->assertSame('json', $identity->sourceType);
     }
+
+    #[Test]
+    public function host_over_253_chars_is_null_but_hash_still_computed(): void
+    {
+        $longHost = str_repeat('a', 250) . '.com';
+
+        $identity = FeedIdentity::fromUrl('https://' . $longHost . '/feed');
+
+        $this->assertNull($identity->host);
+        $this->assertNotNull($identity->hash);
+        $this->assertSame(64, strlen($identity->hash));
+    }
 }
