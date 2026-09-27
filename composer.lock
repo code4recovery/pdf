@@ -4295,13 +4295,13 @@
         },
         {
             "name": "setasign/fpdi_pdf-parser",
-            "version": "2.1.7",
+            "version": "2.1.8",
             "dist": {
                 "type": "zip",
-                "url": "https://www.setasign.com/downloads/7110992/FPDI_PDF-Parser-2.1.7.zip"
+                "url": "https://www.setasign.com/downloads/7144473/FPDI_PDF-Parser-2.1.8.zip"
             },
             "require": {
-                "php": ">=7.2 <8.6",
+                "php": ">=7.2 <8.7",
                 "setasign/fpdi": "^2.6.6"
             },
             "type": "library",
@@ -4316,7 +4316,7 @@
             "support": {
                 "email": "support@setasign.com"
             },
-            "time": "2026-08-11T00:00:00+00:00"
+            "time": "2026-09-14T00:00:00+00:00"
         },
         {
             "name": "symfony/clock",
