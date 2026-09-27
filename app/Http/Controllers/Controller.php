@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
+use App\Support\UsageRecorder;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -41,7 +42,7 @@ class Controller extends BaseController
      */
     private const REQUIRED_SHEET_COLUMNS = ['day', 'time', 'types'];
 
-    public function __construct()
+    public function __construct(private readonly UsageRecorder $usage)
     {
         self::$spec = new Spec();
     }
@@ -396,6 +397,8 @@ class Controller extends BaseController
             $meetings = $this->fetchMeetingData($json);
             $availableRegions = $this->extractRegions($meetings);
         } catch (Exception $e) {
+            $this->usage->outcome('fetch_failed');
+
             return Inertia::render('Home', [
                 'screen' => 1,
                 'error' => $e->getMessage(),
@@ -498,6 +501,8 @@ class Controller extends BaseController
         try {
             $covers = $this->validateCovers($width, $height);
         } catch (Exception $e) {
+            $this->usage->outcome('cover_rejected');
+
             return response($e->getMessage(), 422);
         }
 
@@ -591,6 +596,8 @@ class Controller extends BaseController
         try {
             $response = Http::withOptions(['verify' => false])->get($useJson);
         } catch (Exception $e) {
+            $this->usage->outcome('fetch_failed');
+
             return response($this->connectionFailureMessage($googleSheet, $e), 422);
         }
 
@@ -616,6 +623,8 @@ class Controller extends BaseController
                         break;
                 }
             }
+            $this->usage->outcome('fetch_failed', $response->status());
+
             return response($error, 422);
         }
 
@@ -624,6 +633,8 @@ class Controller extends BaseController
 
         if ($googleSheet) {
             if (empty($meetings['values'])) {
+                $this->usage->outcome('parse_failed');
+
                 return response('Could not get Google Sheet values. Response was ' . substr(trim($response->body()), 0, 100) . '…', 422);
             }
 
@@ -634,6 +645,8 @@ class Controller extends BaseController
             try {
                 $this->assertRequiredSheetColumns($headers);
             } catch (Exception $e) {
+                $this->usage->outcome('parse_failed');
+
                 return response($e->getMessage(), 422);
             }
 
@@ -673,6 +686,8 @@ class Controller extends BaseController
                 return $meeting;
             }, $meetings['values']);
         } elseif (!is_array($meetings)) {
+            $this->usage->outcome('parse_failed');
+
             return response('Could not parse JSON data. Response was ' . substr(trim($response->body()), 0, 100) . '…', 422);
         }
 
@@ -905,6 +920,12 @@ class Controller extends BaseController
         // Determine top-level groups for chunking
         $topLevelGroups = ($group_by === 'region-day') ? $regions : $days;
         $meetingCount = $meetings->count();
+
+        $this->usage->meetings(
+            $meetingCount,
+            $meetings->pluck('regions_formatted')->filter()->unique()->count(),
+            $meetingCount > 500
+        );
 
         // Small feed fast path — skip chunking overhead for ≤500 meetings
         if ($meetingCount <= 500) {

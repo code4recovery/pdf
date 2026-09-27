@@ -7,7 +7,7 @@
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-$controller = new App\Http\Controllers\Controller();
+$controller = new App\Http\Controllers\Controller(new App\Support\UsageRecorder());
 $makeTempFile = Closure::bind(
     fn (string $prefix): string => $this->makeTempFile($prefix),
     $controller,

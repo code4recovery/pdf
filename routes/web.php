@@ -14,5 +14,5 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [Controller::class, 'home'])->name('home');
-Route::match(['get', 'post'], '/pdf', [Controller::class, 'pdf'])->name('pdf');
+Route::get('/', [Controller::class, 'home'])->middleware('usage')->name('home');
+Route::match(['get', 'post'], '/pdf', [Controller::class, 'pdf'])->middleware('usage')->name('pdf');
