@@ -32,9 +32,48 @@ class Controller extends BaseController
     /** Allowed difference between a cover page and the requested paper size, in points (1/8 inch). */
     private const COVER_SIZE_TOLERANCE_PT = 9;
 
+    /**
+     * Columns the Sheets row-mapping in fetchMeetingData() and pdf() reads unconditionally
+     * (no isset() guard). A sheet missing any of these crashes the mapping with an
+     * "Undefined array key" error instead of failing cleanly.
+     *
+     * @var list<string>
+     */
+    private const REQUIRED_SHEET_COLUMNS = ['day', 'time', 'types'];
+
     public function __construct()
     {
         self::$spec = new Spec();
+    }
+
+    /**
+     * Build the message for a failed connection to the feed URL.
+     *
+     * Sheets requests hit the internal Sheets API URL, which embeds GOOGLE_API_KEY;
+     * Guzzle's connection-exception message ends with " for <that URL>", so it must
+     * never be echoed back to the caller for a Sheets request. Plain JSON feeds use
+     * a URL the caller typed themselves, so the underlying message is still useful.
+     */
+    private function connectionFailureMessage(bool $googleSheet, Exception $e): string
+    {
+        if ($googleSheet) {
+            return 'Could not fetch data. Please check the address.';
+        }
+
+        return 'Could not fetch data. Please check the address. Received the following message: ' . $e->getMessage();
+    }
+
+    /**
+     * @param list<string> $headers Slugified Sheets header row
+     * @throws Exception When a column the row-mapping requires is missing
+     */
+    private function assertRequiredSheetColumns(array $headers): void
+    {
+        $missing = array_diff(self::REQUIRED_SHEET_COLUMNS, $headers);
+
+        if (!empty($missing)) {
+            throw new Exception('The Google Sheet is missing required columns: ' . implode(', ', $missing) . '.');
+        }
     }
 
     /**
@@ -55,7 +94,7 @@ class Controller extends BaseController
         try {
             $response = Http::withOptions(['verify' => false])->get($useJson);
         } catch (Exception $e) {
-            throw new Exception('Could not fetch data. Please check the address. Received the following message: ' . $e->getMessage());
+            throw new Exception($this->connectionFailureMessage($googleSheet, $e));
         }
 
         // Handle fetch error
@@ -93,6 +132,8 @@ class Controller extends BaseController
             $headers = array_map(function ($header) {
                 return Str::slug($header, '_');
             }, array_shift($meetings['values']));
+
+            $this->assertRequiredSheetColumns($headers);
 
             $header_count = count($headers);
 
@@ -550,8 +591,7 @@ class Controller extends BaseController
         try {
             $response = Http::withOptions(['verify' => false])->get($useJson);
         } catch (Exception $e) {
-            $error = 'Could not fetch data. Please check the address. Received the following message: ' . $e->getMessage();
-            return response($error, 422);
+            return response($this->connectionFailureMessage($googleSheet, $e), 422);
         }
 
         //handle fetch error
@@ -590,6 +630,12 @@ class Controller extends BaseController
             $headers = array_map(function ($header) {
                 return Str::slug($header, '_');
             }, array_shift($meetings['values']));
+
+            try {
+                $this->assertRequiredSheetColumns($headers);
+            } catch (Exception $e) {
+                return response($e->getMessage(), 422);
+            }
 
             $header_count = count($headers);
 

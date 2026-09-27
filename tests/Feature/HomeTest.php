@@ -53,4 +53,25 @@ class HomeTest extends TestCase
                     ->has('error')
             );
     }
+
+    #[Test]
+    public function screen_one_with_error_when_sheet_is_missing_meeting_columns(): void
+    {
+        Http::fake([
+            'sheets.googleapis.com/*' => Http::response([
+                'values' => [
+                    ['Student Name', 'Gender', 'Class Level'],
+                    ['Alexandra', 'Female', '4. Senior'],
+                ],
+            ], 200),
+        ]);
+
+        $this->get('/?json=' . urlencode('https://docs.google.com/spreadsheets/d/ABC/edit'))
+            ->assertOk()
+            ->assertInertia(fn ($page) =>
+                $page->component('Home')
+                    ->where('screen', 1)
+                    ->has('error')
+            );
+    }
 }

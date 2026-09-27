@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -166,5 +167,42 @@ class PdfTest extends TestCase
 
         $response->assertOk();
         $this->assertSame('application/pdf', $response->headers->get('Content-Type'));
+    }
+
+    #[Test]
+    public function connection_failure_message_does_not_expose_the_google_api_key(): void
+    {
+        putenv('GOOGLE_API_KEY=SECRET');
+
+        Http::fake([
+            'sheets.googleapis.com/*' => function () {
+                throw new ConnectionException(
+                    'cURL error 28: timed out for https://sheets.googleapis.com/v4/spreadsheets/ABC/values/A1:ZZ?key=SECRET'
+                );
+            },
+        ]);
+
+        $response = $this->get('/pdf?json=' . urlencode('https://docs.google.com/spreadsheets/d/ABC/edit'));
+
+        $response->assertStatus(422);
+        $this->assertStringNotContainsString('SECRET', $response->getContent());
+        $this->assertStringNotContainsString('ABC', $response->getContent());
+    }
+
+    #[Test]
+    public function sheet_without_meeting_columns_is_a_422(): void
+    {
+        Http::fake([
+            'sheets.googleapis.com/*' => Http::response([
+                'values' => [
+                    ['Student Name', 'Gender', 'Class Level'],
+                    ['Alexandra', 'Female', '4. Senior'],
+                ],
+            ], 200),
+        ]);
+
+        $response = $this->get('/pdf?json=' . urlencode('https://docs.google.com/spreadsheets/d/ABC/edit'));
+
+        $response->assertStatus(422);
     }
 }
