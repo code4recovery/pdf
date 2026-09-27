@@ -314,6 +314,25 @@ class Controller extends BaseController
         return $merger->Output('S');
     }
 
+    /**
+     * Create an empty temp file that PHP deletes at shutdown, so it is removed even when
+     * the request dies from a fatal error (memory exhaustion, execution time limit).
+     */
+    private function makeTempFile(string $prefix): string
+    {
+        $path = tempnam(sys_get_temp_dir(), $prefix);
+        register_shutdown_function(fn () => $this->deleteTempFile($path));
+
+        return $path;
+    }
+
+    private function deleteTempFile(string $path): void
+    {
+        if (is_file($path)) {
+            unlink($path);
+        }
+    }
+
     private function pdfResponse(string $bytes, string $filename, bool $stream): \Illuminate\Http\Response
     {
         return response($bytes, 200, [
@@ -851,13 +870,13 @@ class Controller extends BaseController
                 return ($stream) ? $pdf->stream() : $pdf->download($pdf_name);
             }
 
-            $insideFile = tempnam(sys_get_temp_dir(), 'pdf_inside_');
+            $insideFile = $this->makeTempFile('pdf_inside_');
             try {
                 file_put_contents($insideFile, $pdf->output());
                 unset($pdf);
                 $mergedPdf = $this->mergePdfFiles(array_values(array_filter([$covers['front'], $insideFile, $covers['back']])));
             } finally {
-                @unlink($insideFile);
+                $this->deleteTempFile($insideFile);
             }
 
             return $this->pdfResponse($mergedPdf, $pdf_name, $stream);
@@ -914,7 +933,7 @@ class Controller extends BaseController
                 }
 
                 // Write to temp file immediately instead of accumulating in memory
-                $tmpFile = tempnam(sys_get_temp_dir(), 'pdf_chunk_');
+                $tmpFile = $this->makeTempFile('pdf_chunk_');
                 file_put_contents($tmpFile, $chunk->output());
                 $chunkFiles[] = $tmpFile;
 
@@ -927,7 +946,7 @@ class Controller extends BaseController
             $mergedPdf = $this->mergePdfFiles(array_values(array_filter([$covers['front'], ...$chunkFiles, $covers['back']])));
         } finally {
             foreach ($chunkFiles as $tmpFile) {
-                @unlink($tmpFile);
+                $this->deleteTempFile($tmpFile);
             }
         }
 
