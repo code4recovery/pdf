@@ -6,6 +6,7 @@ use App\Models\UsageEvent;
 use App\Models\UsageMonthly;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -99,6 +100,70 @@ class RollupUsageTest extends TestCase
         $monthly = UsageMonthly::first();
         $this->assertSame(2, $monthly->count);
         $this->assertSame('', $monthly->referrer_host);
+    }
+
+    #[Test]
+    public function second_night_adds_to_existing_monthly_row(): void
+    {
+        $this->travelTo(now()->subDays(100));
+        UsageEvent::factory()->create([
+            'feed_hash' => str_repeat('a', 64),
+            'feed_host' => 'example.org',
+            'referrer_host' => null,
+        ]);
+        $this->travelBack();
+
+        $this->artisan('usage:rollup')->assertExitCode(0);
+
+        $this->travelTo(now()->subDays(100));
+        UsageEvent::factory()->create([
+            'feed_hash' => str_repeat('a', 64),
+            'feed_host' => 'example.org',
+            'referrer_host' => null,
+        ]);
+        $this->travelBack();
+
+        $this->artisan('usage:rollup')->assertExitCode(0);
+
+        $this->assertSame(1, UsageMonthly::count());
+        $this->assertSame(2, UsageMonthly::first()->count);
+        $this->assertSame(0, UsageEvent::count());
+    }
+
+    #[Test]
+    public function backlog_larger_than_one_chunk_counts_every_event(): void
+    {
+        $createdAt = now()->subDays(100)->toDateTimeString();
+
+        $row = [
+            'event' => 'pdf_generated',
+            'outcome' => 'success',
+            'http_status' => 200,
+            'source_type' => 'json',
+            'feed_hash' => str_repeat('a', 64),
+            'feed_host' => 'example.org',
+            'referrer_host' => null,
+            'meeting_count' => 120,
+            'region_count' => null,
+            'upstream_status' => null,
+            'chunked' => false,
+            'duration_ms' => 800,
+            'peak_memory_mb' => 64,
+            'settings' => null,
+            'created_at' => $createdAt,
+        ];
+
+        $rows = array_fill(0, 1001, $row);
+
+        foreach (array_chunk($rows, 500) as $chunk) {
+            DB::table('usage_events')->insert($chunk);
+        }
+
+        $this->artisan('usage:rollup')->assertExitCode(0);
+
+        $this->assertSame(1, UsageMonthly::count());
+        $this->assertSame(1001, UsageMonthly::first()->count);
+        $this->assertSame(0, UsageEvent::count());
     }
 
     #[Test]

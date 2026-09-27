@@ -29,14 +29,4 @@ class UsageMonthly extends Model
         'referrer_host',
         'count',
     ];
-
-    /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'month' => 'date',
-        ];
-    }
 }
