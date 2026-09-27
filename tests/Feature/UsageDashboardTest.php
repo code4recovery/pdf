@@ -60,9 +60,13 @@ class UsageDashboardTest extends TestCase
             'event' => 'pdf_generated',
             'outcome' => 'success',
         ]);
-        $this->travelBack();
 
+        // monthly()'s 24-month cutoff is measured from now(), so it must be
+        // read while time travel still puts "now" in 2026-09 — otherwise the
+        // fixed 2026-09 fixture dates eventually fall outside the window.
         $months = collect((new UsageReport())->monthly())->keyBy('month');
+
+        $this->travelBack();
 
         $this->assertSame(7, $months['2026-09']['pdfs']);
     }
