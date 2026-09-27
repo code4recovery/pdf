@@ -474,10 +474,15 @@ class Controller extends BaseController
         // Set to true to preview output as a normal blade template in browser
         $debug = false;
 
+        $language = request('language');
+        if (!is_string($language) || !array_key_exists($language, self::$spec->getLanguages())) {
+            $language = 'en';
+        }
+
         // Set font based on font choice & language (CJK languages need different fonts)
         $baseFont = 'Noto';
         $fontStyle = request('font') === 'sans-serif' ? ' Sans' : ' Serif';
-        $fontSuffix = match (request('language')) {
+        $fontSuffix = match ($language) {
             'ja' => ' JP',
             'th' => ' Thai',
             default => '',
@@ -491,7 +496,6 @@ class Controller extends BaseController
         $height = floatval(request('height', 11)) * 72;
         $numbering = request('numbering', false);
         if ($numbering) $numbering = intval($numbering);
-        $language = request('language', 'en');
         $type = request('type', false);
         $stream = request('mode') === 'stream';
         $options = request('options', []);

@@ -61,6 +61,24 @@ class PdfTest extends TestCase
     }
 
     #[Test]
+    #[DataProvider('unsupportedLanguages')]
+    public function unsupported_language_falls_back_to_english(string $query): void
+    {
+        $response = $this->get('/pdf?json=https://example.test/feed&' . $query);
+
+        $response->assertOk();
+        $this->assertSame('application/pdf', $response->headers->get('Content-Type'));
+    }
+
+    public static function unsupportedLanguages(): array
+    {
+        return [
+            'unknown code' => ['language=xx'],
+            'array' => ['language[]=x'],
+        ];
+    }
+
+    #[Test]
     public function region_day_page_breaks_do_not_emit_a_trailing_blank_page(): void
     {
         $this->fakeMultiRegionFeed();

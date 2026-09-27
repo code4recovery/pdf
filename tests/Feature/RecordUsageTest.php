@@ -153,18 +153,12 @@ class RecordUsageTest extends TestCase
         $this->assertSame([], $settings['options']);
     }
 
-    /**
-     * `language[]=x` is unrelated pre-existing behaviour, same as the
-     * scalar `language=xx` case below: Controller::pdf() passes the raw
-     * request value straight into Code4Recovery\Spec::getTypesByLanguage(),
-     * so a non-string language always fails regardless of usage recording.
-     */
     #[Test]
-    public function array_language_is_recorded_as_other_even_when_the_request_fails(): void
+    public function array_language_is_recorded_as_other(): void
     {
         $response = $this->get('/pdf?json=https://example.test/feed&language[]=x');
 
-        $response->assertStatus(500);
+        $response->assertOk();
         $this->assertSame('other', UsageEvent::first()->settings['language']);
     }
 
@@ -184,19 +178,12 @@ class RecordUsageTest extends TestCase
         $this->assertNull($settings['font_size']);
     }
 
-    /**
-     * `language=xx` is unrelated pre-existing behaviour: Controller::pdf()
-     * indexes its `$strings` translation table directly by language and
-     * has no fallback, so an unrecognised language 500s regardless of usage
-     * recording. That's out of scope here — this only proves the recorder
-     * still normalises and persists a sane row when that happens.
-     */
     #[Test]
-    public function unknown_language_is_recorded_as_other_even_when_the_request_fails(): void
+    public function unknown_language_is_recorded_as_other(): void
     {
         $response = $this->get('/pdf?json=https://example.test/feed&language=xx');
 
-        $response->assertStatus(500);
+        $response->assertOk();
         $this->assertSame('other', UsageEvent::first()->settings['language']);
     }
 
