@@ -6,6 +6,7 @@ use App\Models\UsageEvent;
 use App\Support\FeedIdentity;
 use App\Support\UsageRecorder;
 use Closure;
+use Code4Recovery\Spec;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -17,6 +18,21 @@ use Throwable;
  */
 class RecordUsage
 {
+    /** @var list<string> */
+    private const GROUP_BY_VALUES = ['day-region', 'day', 'region-day'];
+
+    /** @var list<string> */
+    private const FONT_VALUES = ['sans-serif', 'serif'];
+
+    /** @var list<string> */
+    private const MODE_VALUES = ['download', 'stream'];
+
+    /** @var list<int> */
+    private const FONT_SIZES = [8, 9, 10, 11, 12, 16, 20, 24];
+
+    /** @var list<string> */
+    private const OPTION_KEYS = ['legend', 'pagebreaks', 'long_address', 'time_24hr'];
+
     public function __construct(private readonly UsageRecorder $recorder)
     {
     }
@@ -99,27 +115,97 @@ class RecordUsage
     }
 
     /**
+     * Normalises every setting to a known, storable shape so an arbitrary
+     * request value (an array where a scalar is expected, an unrecognised
+     * option, etc.) can never make it into the `settings` JSON column and
+     * break the dashboard later.
+     *
      * @return array<string, mixed>
      */
     private function settings(Request $request): array
     {
-        $width = $request->input('width', 4.25);
-        $height = $request->input('height', 11);
         $regions = (array) $request->input('regions', []);
-        $options = (array) $request->input('options', []);
 
         return [
-            'group_by' => $request->input('group_by', 'day-region'),
-            'language' => $request->input('language', 'en'),
-            'paper' => $width . 'x' . $height,
-            'font' => $request->input('font', 'serif'),
-            'font_size' => (int) $request->input('font_size', 12),
-            'mode' => $request->input('mode', 'download'),
+            'group_by' => $this->enumSetting($request, 'group_by', self::GROUP_BY_VALUES, 'day-region'),
+            'language' => $this->enumSetting($request, 'language', array_keys(Spec::getLanguages()), 'en'),
+            'paper' => $this->paperSetting($request),
+            'font' => $this->enumSetting($request, 'font', self::FONT_VALUES, 'serif'),
+            'font_size' => $this->fontSizeSetting($request),
+            'mode' => $this->enumSetting($request, 'mode', self::MODE_VALUES, 'download'),
             'numbering' => (bool) $request->input('numbering', false),
             'regions_selected' => !empty($regions),
             'front_cover' => $request->hasFile('front'),
             'back_cover' => $request->hasFile('back'),
-            'options' => array_values($options),
+            'options' => $this->optionsSetting($request),
         ];
+    }
+
+    /**
+     * @param  list<string>  $allowed
+     */
+    private function enumSetting(Request $request, string $key, array $allowed, string $default): string
+    {
+        $value = $request->input($key, $default);
+
+        if (!is_scalar($value)) {
+            return 'other';
+        }
+
+        return in_array((string) $value, $allowed, true) ? (string) $value : 'other';
+    }
+
+    private function paperSetting(Request $request): string
+    {
+        $width = $this->formatDimension($request->input('width', 4.25));
+        $height = $this->formatDimension($request->input('height', 11));
+
+        if ($width === null || $height === null) {
+            return 'other';
+        }
+
+        return $width . 'x' . $height;
+    }
+
+    /**
+     * Formats a numeric width/height to a string with no trailing zeros,
+     * or null when the value isn't a plain numeric scalar.
+     */
+    private function formatDimension(mixed $value): ?string
+    {
+        if (!is_scalar($value) || !is_numeric($value)) {
+            return null;
+        }
+
+        return rtrim(rtrim(sprintf('%.10f', (float) $value), '0'), '.');
+    }
+
+    private function fontSizeSetting(Request $request): ?int
+    {
+        $value = $request->input('font_size', 12);
+
+        if (!is_scalar($value) || !is_numeric($value)) {
+            return null;
+        }
+
+        $intValue = (int) $value;
+
+        return in_array($intValue, self::FONT_SIZES, true) ? $intValue : null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function optionsSetting(Request $request): array
+    {
+        $options = $request->input('options', []);
+
+        if (!is_array($options)) {
+            return [];
+        }
+
+        $strings = array_filter($options, 'is_string');
+
+        return array_values(array_unique(array_intersect($strings, self::OPTION_KEYS)));
     }
 }

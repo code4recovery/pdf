@@ -141,6 +141,66 @@ class RecordUsageTest extends TestCase
     }
 
     #[Test]
+    public function array_settings_are_normalised(): void
+    {
+        $response = $this->get('/pdf?json=https://example.test/feed&mode[]=x&options[]=' . urlencode('<script>'));
+
+        $response->assertOk();
+
+        $settings = UsageEvent::first()->settings;
+
+        $this->assertSame('other', $settings['mode']);
+        $this->assertSame([], $settings['options']);
+    }
+
+    /**
+     * `language[]=x` is unrelated pre-existing behaviour, same as the
+     * scalar `language=xx` case below: Controller::pdf() passes the raw
+     * request value straight into Code4Recovery\Spec::getTypesByLanguage(),
+     * so a non-string language always fails regardless of usage recording.
+     */
+    #[Test]
+    public function array_language_is_recorded_as_other_even_when_the_request_fails(): void
+    {
+        $response = $this->get('/pdf?json=https://example.test/feed&language[]=x');
+
+        $response->assertStatus(500);
+        $this->assertSame('other', UsageEvent::first()->settings['language']);
+    }
+
+    #[Test]
+    public function unknown_scalar_settings_become_other(): void
+    {
+        $response = $this->get('/pdf?json=https://example.test/feed&group_by=diagonal&font=comic-sans&mode=fax&width=4.25abc&font_size=13');
+
+        $response->assertOk();
+
+        $settings = UsageEvent::first()->settings;
+
+        $this->assertSame('other', $settings['group_by']);
+        $this->assertSame('other', $settings['font']);
+        $this->assertSame('other', $settings['mode']);
+        $this->assertSame('other', $settings['paper']);
+        $this->assertNull($settings['font_size']);
+    }
+
+    /**
+     * `language=xx` is unrelated pre-existing behaviour: Controller::pdf()
+     * indexes its `$strings` translation table directly by language and
+     * has no fallback, so an unrecognised language 500s regardless of usage
+     * recording. That's out of scope here — this only proves the recorder
+     * still normalises and persists a sane row when that happens.
+     */
+    #[Test]
+    public function unknown_language_is_recorded_as_other_even_when_the_request_fails(): void
+    {
+        $response = $this->get('/pdf?json=https://example.test/feed&language=xx');
+
+        $response->assertStatus(500);
+        $this->assertSame('other', UsageEvent::first()->settings['language']);
+    }
+
+    #[Test]
     public function form_opened_is_recorded_with_referrer(): void
     {
         $response = $this->withHeaders(['Referer' => 'https://www.district9.org/meetings/'])

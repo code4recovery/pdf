@@ -353,13 +353,22 @@ final class UsageReport
         return $rows;
     }
 
+    /**
+     * Never throws for non-scalar values, so a pre-existing row written
+     * before settings were normalised (e.g. an array under a key that is
+     * now enum-only) can't 500 the dashboard.
+     */
     private function displayValue(mixed $value): string
     {
         if (is_bool($value)) {
             return $value ? 'true' : 'false';
         }
 
-        return (string) $value;
+        if (is_scalar($value)) {
+            return (string) $value;
+        }
+
+        return json_encode($value) ?: 'other';
     }
 
     /**

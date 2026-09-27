@@ -126,6 +126,21 @@ class UsageDashboardTest extends TestCase
     }
 
     #[Test]
+    public function dashboard_survives_non_scalar_settings_rows(): void
+    {
+        $user = User::factory()->create();
+
+        UsageEvent::factory()->create([
+            'event' => 'pdf_generated',
+            'settings' => ['mode' => ['x']],
+        ]);
+
+        $this->actingAs($user)
+            ->get('/usage')
+            ->assertOk();
+    }
+
+    #[Test]
     public function failures_are_counted_by_outcome(): void
     {
         UsageEvent::factory()->count(3)->create([
