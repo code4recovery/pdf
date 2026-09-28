@@ -38,7 +38,7 @@ export default function Usage({
     return (
         <main className="container-lg my-5">
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h1 className="h3 mb-0">Usage Dashboard</h1>
+                <h1 className="h3 mb-0">PDF Usage Dashboard</h1>
                 <form onSubmit={handleSignOut}>
                     <button type="submit" className="btn btn-outline-secondary btn-sm">
                         Sign out
