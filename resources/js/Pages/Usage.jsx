@@ -145,7 +145,7 @@ export default function Usage({
             </section>
 
             <section className="mb-5">
-                <h2 className="h5">Top Referrers</h2>
+                <h2 className="h5">Top Referrers (all time)</h2>
                 <div className="table-responsive dash-table">
                     <table className="table">
                         <thead>
@@ -214,7 +214,7 @@ export default function Usage({
             </section>
 
             <section className="mb-5">
-                <h2 className="h5">Settings</h2>
+                <h2 className="h5">Settings (last 90 days)</h2>
                 <div className="table-responsive dash-table">
                     <table className="table">
                         <thead>
@@ -251,7 +251,7 @@ export default function Usage({
             </section>
 
             <section className="mb-5">
-                <h2 className="h5">Heaviest Requests</h2>
+                <h2 className="h5">Heaviest Requests (last 90 days)</h2>
                 <div className="table-responsive dash-table">
                     <table className="table">
                         <thead>
