@@ -11,6 +11,7 @@ Go to [pdf.code4recovery.org](https://pdf.code4recovery.org) and enter your Meet
 Then you can adjust how your schedule looks:
 
 -   **Width and height** set the paper size in inches. The default is 4.25 x 11.
+-   **Print as booklet** arranges the finished file two pages per sheet in folding order, ready to print double-sided, fold, and staple (more on that below).
 -   **Start #** sets the page number of the first page, which is useful when your schedule will follow cover pages (more on that below).
 -   **Type** limits the schedule to one meeting type, for example Open or Women.
 -   **Language** translates day names, times, and headings. English, Spanish, French, Japanese, Dutch, Portuguese, Slovak, Swedish, and Thai are supported.
@@ -33,16 +34,21 @@ This service provides the inside pages of a meeting book. To create the outer pa
 
 ## Booklet printing
 
-Once nice way to use this is to print a meeting booklet for a central office. To get booklet printing to work properly, the first step is to assemble the booklet following the instructions above.
+One nice way to use this is to print a meeting booklet for a central office. You will need a duplex printer.
 
-You will need a duplex printer and a program such as [Adobe Reader](https://get.adobe.com/reader/) (free) to print bookletized. Open the file in Reader, hit Print, and:
+1. Set the page size of one booklet page (the default 4.25 x 11 folds from US Letter), attach any cover PDFs, and check **Print as booklet**. The form shows the sheet size to print on (twice the page width by the same height) and which duplex setting to use.
+1. Generate. The file comes back with two pages on each sheet, in the order that makes them read correctly once folded. Blank pages are added where needed to reach a multiple of four, placed just before your back PDF so it stays on the outside back.
+1. Print the file double-sided at 100% (actual size), choosing "flip on long edge" or "flip on short edge" as the form says.
+1. Fold the stack in half and staple along the fold. After a download the page tells you how many sheets the booklet is; check that your stapler can handle that thickness.
+
+If a print shop is producing your booklet, send them the normal (not booklet) file instead: they arrange pages on their own equipment.
+
+To arrange pages by hand instead, assemble the normal file as described above and print it from a program such as [Adobe Reader](https://get.adobe.com/reader/) (free). Open the file in Reader, hit Print, and:
 
 -   Select "Booklet"
 -   Booklet subset should be "Both Sides"
 -   Binding should be "Left (Tall)"
--   Then eliminate page margins by going to to Page Setup… -> Paper Size > Custom > 8.5 x 11 and set the margins to 0
-
-This should print a stack of pages that you can fold and staple down the middle. Voila!
+-   Then eliminate page margins by going to Page Setup… > Paper Size > Custom > 8.5 x 11 and set the margins to 0
 
 ## Usage analytics
 
