@@ -76,6 +76,33 @@ class UsageFeedsTest extends TestCase
     }
 
     #[Test]
+    public function feeds_show_the_meeting_count_from_their_latest_pdf(): void
+    {
+        $hash = hash('sha256', 'growing');
+        $old = hash('sha256', 'rolled-up-only');
+
+        UsageEvent::factory()->create(['feed_hash' => $hash, 'meeting_count' => 300, 'created_at' => now()->subDays(5)]);
+        UsageEvent::factory()->create(['feed_hash' => $hash, 'meeting_count' => 320, 'created_at' => now()->subDay()]);
+        UsageEvent::factory()->create(['feed_hash' => $hash, 'meeting_count' => 310, 'created_at' => now()->subDays(3)]);
+
+        UsageMonthly::create([
+            'month' => '2026-01-01',
+            'event' => 'pdf_generated',
+            'outcome' => 'success',
+            'source_type' => 'json',
+            'feed_hash' => $old,
+            'feed_host' => 'old.org',
+            'referrer_host' => '',
+            'count' => 2,
+        ]);
+
+        $meetings = array_column(app(UsageReport::class)->feeds(), 'meetings', 'fingerprint');
+
+        $this->assertSame(320, $meetings[substr($hash, 0, 12)]);
+        $this->assertNull($meetings[substr($old, 0, 12)]);
+    }
+
+    #[Test]
     public function top_feeds_still_limits_and_orders_by_pdfs(): void
     {
         $busy = hash('sha256', 'busy');

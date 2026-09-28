@@ -163,7 +163,7 @@ final class UsageReport
     /**
      * The busiest feeds of all time, most PDFs first.
      *
-     * @return list<array{fingerprint: string, label: ?string, host: ?string, source_type: string, pdfs: int, last_used: string}>
+     * @return list<array{fingerprint: string, label: ?string, host: ?string, source_type: string, pdfs: int, meetings: ?int, last_used: string}>
      */
     public function topFeeds(int $limit = 25): array
     {
@@ -177,7 +177,7 @@ final class UsageReport
     /**
      * Every feed that has produced a PDF, alphabetical by label, then host, then fingerprint.
      *
-     * @return list<array{fingerprint: string, label: ?string, host: ?string, source_type: string, pdfs: int, last_used: string}>
+     * @return list<array{fingerprint: string, label: ?string, host: ?string, source_type: string, pdfs: int, meetings: ?int, last_used: string}>
      */
     public function feeds(): array
     {
@@ -192,7 +192,7 @@ final class UsageReport
     }
 
     /**
-     * @return list<array{fingerprint: string, label: ?string, host: ?string, source_type: string, pdfs: int, last_used: string}>
+     * @return list<array{fingerprint: string, label: ?string, host: ?string, source_type: string, pdfs: int, meetings: ?int, last_used: string}>
      */
     private function feedRows(): array
     {
@@ -221,6 +221,12 @@ final class UsageReport
             }
 
             $this->extendLastUsed($bucket, $event->created_at->toDateString());
+
+            if ($event->meeting_count !== null && ($bucket['meetings_at'] === null || $event->created_at->gte($bucket['meetings_at']))) {
+                $bucket['meetings'] = $event->meeting_count;
+                $bucket['meetings_at'] = $event->created_at;
+            }
+
             unset($bucket);
         }
 
@@ -233,6 +239,7 @@ final class UsageReport
                 'host' => $bucket['host'],
                 'source_type' => $bucket['source_type'],
                 'pdfs' => $bucket['pdfs'],
+                'meetings' => $bucket['meetings'],
                 'last_used' => $bucket['last_used'],
             ],
             array_keys($buckets),
@@ -241,13 +248,13 @@ final class UsageReport
     }
 
     /**
-     * @param  array<string, array{pdfs: int, source_type: string, host: ?string, last_used: string}>  $buckets
-     * @return array{pdfs: int, source_type: string, host: ?string, last_used: string}
+     * @param  array<string, array{pdfs: int, source_type: string, host: ?string, last_used: string, meetings: ?int, meetings_at: ?\Illuminate\Support\Carbon}>  $buckets
+     * @return array{pdfs: int, source_type: string, host: ?string, last_used: string, meetings: ?int, meetings_at: ?\Illuminate\Support\Carbon}
      */
     private function &feedBucket(array &$buckets, string $key): array
     {
         if (!isset($buckets[$key])) {
-            $buckets[$key] = ['pdfs' => 0, 'source_type' => 'json', 'host' => null, 'last_used' => '0000-00-00'];
+            $buckets[$key] = ['pdfs' => 0, 'source_type' => 'json', 'host' => null, 'last_used' => '0000-00-00', 'meetings' => null, 'meetings_at' => null];
         }
 
         return $buckets[$key];

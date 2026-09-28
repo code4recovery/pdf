@@ -24,6 +24,7 @@ export default function UsageFeeds({ feeds }) {
                             <th>Fingerprint</th>
                             <th>Source</th>
                             <th>PDFs</th>
+                            <th>Meetings</th>
                             <th>Last Used</th>
                         </tr>
                     </thead>
@@ -36,12 +37,13 @@ export default function UsageFeeds({ feeds }) {
                                 </td>
                                 <td>{sourceTypeLabel(row.source_type)}</td>
                                 <td>{row.pdfs}</td>
+                                <td>{row.meetings ?? '—'}</td>
                                 <td>{row.last_used}</td>
                             </tr>
                         ))}
                         {feeds.length === 0 && (
                             <tr>
-                                <td colSpan="5" className="text-muted">
+                                <td colSpan="6" className="text-muted">
                                     No activity yet.
                                 </td>
                             </tr>

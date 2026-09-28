@@ -135,6 +135,7 @@ export default function Usage({
                                 <th>Feed</th>
                                 <th>Source</th>
                                 <th>PDFs</th>
+                                <th>Meetings</th>
                                 <th>Last Used</th>
                             </tr>
                         </thead>
@@ -144,12 +145,13 @@ export default function Usage({
                                     <td>{row.label || row.host || row.fingerprint}</td>
                                     <td>{sourceTypeLabel(row.source_type)}</td>
                                     <td>{row.pdfs}</td>
+                                    <td>{row.meetings ?? '—'}</td>
                                     <td>{row.last_used}</td>
                                 </tr>
                             ))}
                             {topFeeds.length === 0 && (
                                 <tr>
-                                    <td colSpan="4" className="text-muted">
+                                    <td colSpan="5" className="text-muted">
                                         No activity yet.
                                     </td>
                                 </tr>
