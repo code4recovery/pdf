@@ -19,7 +19,7 @@ class UsageController extends BaseController
             'sources' => $report->sources(),
             'topFeeds' => $report->topFeeds(),
             'topReferrers' => $report->topReferrers(),
-            'outcomes' => $report->outcomes(),
+            'failures' => $report->failures(),
             'settings' => $report->settings(),
             'heaviest' => $report->heaviest(),
         ]);

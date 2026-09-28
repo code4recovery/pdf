@@ -401,29 +401,41 @@ final class UsageReport
     }
 
     /**
-     * @return list<array{outcome: string, upstream_status: ?int, count: int}>
+     * Every PDF request that did not succeed, by outcome and the feed's own HTTP status, most frequent first,
+     * alongside the total number of PDF requests so the dashboard can show a failure rate. All time.
+     *
+     * @return array{requests: int, rows: list<array{outcome: string, upstream_status: ?int, count: int}>}
      */
-    public function outcomes(): array
+    public function failures(): array
     {
+        $requests = 0;
         $buckets = [];
 
         foreach (UsageMonthly::query()->where('event', 'pdf_generated')->get() as $row) {
-            $key = $row->outcome . '|';
-            $buckets[$key] ??= ['outcome' => $row->outcome, 'upstream_status' => null, 'count' => 0];
-            $buckets[$key]['count'] += $row->count;
+            $requests += $row->count;
+
+            if ($row->outcome !== 'success') {
+                $key = $row->outcome . '|';
+                $buckets[$key] ??= ['outcome' => $row->outcome, 'upstream_status' => null, 'count' => 0];
+                $buckets[$key]['count'] += $row->count;
+            }
         }
 
         foreach (UsageEvent::query()->where('event', 'pdf_generated')->get() as $event) {
-            $key = $event->outcome . '|' . ($event->upstream_status ?? '');
-            $buckets[$key] ??= ['outcome' => $event->outcome, 'upstream_status' => $event->upstream_status, 'count' => 0];
-            $buckets[$key]['count']++;
+            $requests++;
+
+            if ($event->outcome !== 'success') {
+                $key = $event->outcome . '|' . ($event->upstream_status ?? '');
+                $buckets[$key] ??= ['outcome' => $event->outcome, 'upstream_status' => $event->upstream_status, 'count' => 0];
+                $buckets[$key]['count']++;
+            }
         }
 
         $rows = array_values($buckets);
 
         usort($rows, fn (array $a, array $b): int => $b['count'] <=> $a['count']);
 
-        return $rows;
+        return ['requests' => $requests, 'rows' => $rows];
     }
 
     /**

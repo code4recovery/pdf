@@ -35,7 +35,8 @@ class UsageDashboardTest extends TestCase
                 ->has('sources')
                 ->has('topFeeds')
                 ->has('topReferrers')
-                ->has('outcomes')
+                ->has('failures.requests')
+                ->has('failures.rows')
                 ->has('settings')
                 ->has('heaviest')
             );
@@ -141,7 +142,7 @@ class UsageDashboardTest extends TestCase
     }
 
     #[Test]
-    public function failures_are_counted_by_outcome(): void
+    public function failures_are_counted_by_outcome_and_feed_status(): void
     {
         UsageEvent::factory()->count(3)->create([
             'event' => 'pdf_generated',
@@ -149,10 +150,33 @@ class UsageDashboardTest extends TestCase
             'upstream_status' => 404,
         ]);
 
-        $outcome = collect((new UsageReport())->outcomes())
+        $row = collect((new UsageReport())->failures()['rows'])
             ->first(fn (array $row): bool => $row['outcome'] === 'fetch_failed' && $row['upstream_status'] === 404);
 
-        $this->assertNotNull($outcome);
-        $this->assertSame(3, $outcome['count']);
+        $this->assertNotNull($row);
+        $this->assertSame(3, $row['count']);
+    }
+
+    #[Test]
+    public function failures_leave_out_successes_but_count_every_request(): void
+    {
+        UsageEvent::factory()->count(6)->create(['event' => 'pdf_generated', 'outcome' => 'success']);
+        UsageEvent::factory()->create(['event' => 'pdf_generated', 'outcome' => 'error', 'http_status' => 500]);
+        UsageEvent::factory()->create(['event' => 'form_opened', 'outcome' => 'fetch_failed']);
+        UsageMonthly::create([
+            'month' => '2026-01-01',
+            'event' => 'pdf_generated',
+            'outcome' => 'parse_failed',
+            'source_type' => 'json',
+            'feed_hash' => '',
+            'feed_host' => '',
+            'referrer_host' => '',
+            'count' => 2,
+        ]);
+
+        $failures = (new UsageReport())->failures();
+
+        $this->assertSame(9, $failures['requests']);
+        $this->assertSame(['parse_failed' => 2, 'error' => 1], array_column($failures['rows'], 'count', 'outcome'));
     }
 }

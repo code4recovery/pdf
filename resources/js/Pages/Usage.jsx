@@ -6,6 +6,38 @@ import Sparkline from '../Components/Sparkline';
 import { OutcomePill, Pill, SourcePill } from '../Components/Pill';
 import '../../css/dashboard.css';
 
+const OUTCOME_MEANINGS = {
+    fetch_failed: "The feed couldn't be downloaded",
+    parse_failed: "The feed downloaded but couldn't be read",
+    cover_rejected: 'An uploaded cover was refused',
+    error: 'Unexpected crash — check Sentry',
+};
+
+const FEED_STATUS_MEANINGS = {
+    401: '12 Step Meeting List data sharing is turned off',
+    403: 'The feed site refused the request',
+    404: "The feed address doesn't exist",
+    500: 'The feed site had a server error',
+};
+
+function failureMeaning(row) {
+    return FEED_STATUS_MEANINGS[row.upstream_status] ?? OUTCOME_MEANINGS[row.outcome] ?? '';
+}
+
+function percent(part, whole) {
+    return whole === 0 ? '—' : `${((part / whole) * 100).toFixed(1)}%`;
+}
+
+function failureSummary({ requests, rows }) {
+    if (requests === 0) {
+        return 'No PDF requests yet.';
+    }
+
+    const failed = rows.reduce((sum, row) => sum + row.count, 0);
+
+    return `${failed} of ${requests} PDF requests failed (${percent(failed, requests)}).`;
+}
+
 function handleSignOut(e) {
     e.preventDefault();
     router.post('/logout');
@@ -32,7 +64,7 @@ export default function Usage({
     sources,
     topFeeds,
     topReferrers,
-    outcomes,
+    failures,
     settings,
     heaviest,
 }) {
@@ -144,30 +176,35 @@ export default function Usage({
             </section>
 
             <section className="mb-5">
-                <h2 className="h5">Outcomes</h2>
+                <h2 className="h5">Failures (all time)</h2>
+                <p className="text-muted small mb-2">{failureSummary(failures)}</p>
                 <div className="table-responsive dash-table">
                     <table className="table">
                         <thead>
                             <tr>
                                 <th>Outcome</th>
-                                <th className="num">Upstream Status</th>
+                                <th>What it means</th>
+                                <th className="num">Feed Status</th>
                                 <th className="num">Count</th>
+                                <th className="num">Share of Requests</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {outcomes.map((row) => (
+                            {failures.rows.map((row) => (
                                 <tr key={`${row.outcome}-${row.upstream_status}`}>
                                     <td>
                                         <OutcomePill outcome={row.outcome} />
                                     </td>
+                                    <td className="text-muted">{failureMeaning(row)}</td>
                                     <td className="num">{row.upstream_status ?? '—'}</td>
                                     <td className="num">{row.count}</td>
+                                    <td className="num">{percent(row.count, failures.requests)}</td>
                                 </tr>
                             ))}
-                            {outcomes.length === 0 && (
+                            {failures.rows.length === 0 && (
                                 <tr>
-                                    <td colSpan="3" className="text-muted">
-                                        No activity yet.
+                                    <td colSpan="5" className="text-muted">
+                                        No failures.
                                     </td>
                                 </tr>
                             )}
