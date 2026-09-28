@@ -132,7 +132,7 @@ export default function Usage({
             </section>
 
             <section className="mb-5">
-                <h2 className="h5">Top Feeds</h2>
+                <h2 className="h5">Top Feeds (all time)</h2>
                 <div className="table-responsive">
                     <table className="table table-sm">
                         <thead>
