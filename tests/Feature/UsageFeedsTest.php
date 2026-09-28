@@ -103,6 +103,31 @@ class UsageFeedsTest extends TestCase
     }
 
     #[Test]
+    public function feeds_carry_their_address_from_either_table(): void
+    {
+        $recent = hash('sha256', 'recent');
+        $old = hash('sha256', 'old');
+
+        UsageEvent::factory()->create(['feed_hash' => $recent, 'feed_url' => 'https://recent.org/feed']);
+        UsageMonthly::create([
+            'month' => '2026-01-01',
+            'event' => 'pdf_generated',
+            'outcome' => 'success',
+            'source_type' => 'json',
+            'feed_hash' => $old,
+            'feed_host' => 'old.org',
+            'referrer_host' => '',
+            'feed_url' => 'https://old.org/feed',
+            'count' => 1,
+        ]);
+
+        $urls = array_column(app(UsageReport::class)->feeds(), 'url', 'fingerprint');
+
+        $this->assertSame('https://recent.org/feed', $urls[substr($recent, 0, 12)]);
+        $this->assertSame('https://old.org/feed', $urls[substr($old, 0, 12)]);
+    }
+
+    #[Test]
     public function top_feeds_still_limits_and_orders_by_pdfs(): void
     {
         $busy = hash('sha256', 'busy');

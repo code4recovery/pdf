@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import DataTable from '../Components/DataTable';
+import FeedName from '../Components/FeedName';
 import { sourceTypeLabel } from '../sourceTypes';
 
 const columns = [
@@ -8,12 +9,7 @@ const columns = [
         header: 'Feed',
         accessorFn: (row) => row.label || row.host || '—',
         sortFn: 'text',
-    },
-    {
-        id: 'fingerprint',
-        header: 'Fingerprint',
-        accessorKey: 'fingerprint',
-        cell: ({ getValue }) => <code>{getValue()}</code>,
+        cell: ({ row }) => <FeedName feed={row.original} />,
     },
     {
         id: 'source',

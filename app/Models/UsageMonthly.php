@@ -26,6 +26,7 @@ class UsageMonthly extends Model
         'source_type',
         'feed_hash',
         'feed_host',
+        'feed_url',
         'referrer_host',
         'count',
     ];

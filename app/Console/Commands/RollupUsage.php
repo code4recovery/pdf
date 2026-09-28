@@ -66,7 +66,14 @@ class RollupUsage extends Command
                             'referrer_host' => $first->referrer_host ?? '',
                         ], ['count' => 0]);
 
-                        $monthly->increment('count', $group->count());
+                        $url = $group->pluck('feed_url')->filter()->last();
+
+                        if ($url !== null && $monthly->feed_url !== $url) {
+                            $monthly->feed_url = $url;
+                        }
+
+                        $monthly->count += $group->count();
+                        $monthly->save();
 
                         $touchedMonthlyIds[$monthly->id] = true;
                     }

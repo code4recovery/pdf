@@ -1,4 +1,5 @@
 import { Link, router } from '@inertiajs/react';
+import FeedName from '../Components/FeedName';
 import MonthlyChart from '../Components/MonthlyChart';
 import { sourceTypeLabel } from '../sourceTypes';
 
@@ -133,7 +134,9 @@ export default function Usage({
                         <tbody>
                             {topFeeds.map((row) => (
                                 <tr key={row.fingerprint}>
-                                    <td>{row.label || row.host || row.fingerprint}</td>
+                                    <td>
+                                        <FeedName feed={row} />
+                                    </td>
                                     <td>{sourceTypeLabel(row.source_type)}</td>
                                     <td>{row.pdfs}</td>
                                     <td>{row.meetings ?? '—'}</td>

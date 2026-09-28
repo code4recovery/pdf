@@ -75,6 +75,7 @@ class RecordUsage
             'source_type' => $feed->sourceType,
             'feed_hash' => $feed->hash,
             'feed_host' => $feed->host,
+            'feed_url' => $feed->url,
             'referrer_host' => $this->referrerHost($request),
             'meeting_count' => $this->recorder->getMeetingCount(),
             'region_count' => $this->recorder->getRegionCount(),

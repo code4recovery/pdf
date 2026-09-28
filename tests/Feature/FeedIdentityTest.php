@@ -96,4 +96,30 @@ class FeedIdentityTest extends TestCase
         $this->assertNotNull($identity->hash);
         $this->assertSame(64, strlen($identity->hash));
     }
+
+    #[Test]
+    public function public_feed_keeps_its_address_minus_query_except_action(): void
+    {
+        $identity = FeedIdentity::fromUrl('https://www.Example.org/wp-admin/admin-ajax.php?key=SECRET&action=meetings#top');
+
+        $this->assertSame('https://www.example.org/wp-admin/admin-ajax.php?action=meetings', $identity->url);
+    }
+
+    #[Test]
+    public function public_feed_without_action_drops_the_whole_query(): void
+    {
+        $identity = FeedIdentity::fromUrl('http://example.org:8080/meetings.json?token=SECRET');
+
+        $this->assertSame('http://example.org:8080/meetings.json', $identity->url);
+    }
+
+    #[Test]
+    public function sheets_and_unusable_input_have_no_address(): void
+    {
+        $this->assertNull(FeedIdentity::fromUrl('https://docs.google.com/spreadsheets/d/ABC123/edit')->url);
+        $this->assertNull(FeedIdentity::fromUrl('')->url);
+        $this->assertNull(FeedIdentity::fromUrl('not a url')->url);
+        $this->assertNull(FeedIdentity::fromUrl('javascript://example.org/%0Aalert(1)')->url);
+        $this->assertNull(FeedIdentity::fromUrl('https://example.org/' . str_repeat('a', 2100))->url);
+    }
 }

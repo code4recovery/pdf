@@ -103,6 +103,20 @@ class RollupUsageTest extends TestCase
     }
 
     #[Test]
+    public function rollup_keeps_the_feed_address(): void
+    {
+        UsageEvent::factory()->create([
+            'feed_hash' => hash('sha256', 'kept'),
+            'feed_url' => 'https://kept.org/feed.json',
+            'created_at' => now()->subDays(100),
+        ]);
+
+        $this->artisan('usage:rollup')->assertSuccessful();
+
+        $this->assertSame('https://kept.org/feed.json', UsageMonthly::first()->feed_url);
+    }
+
+    #[Test]
     public function second_night_adds_to_existing_monthly_row(): void
     {
         $this->travelTo(now()->subDays(100));

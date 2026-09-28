@@ -68,6 +68,15 @@ class RecordUsageTest extends TestCase
         $encoded = json_encode(UsageEvent::first());
         $this->assertStringNotContainsString($sheetId, $encoded);
         $this->assertStringNotContainsString('docs.google.com/spreadsheets/d/', $encoded);
+        $this->assertNull(UsageEvent::first()->feed_url);
+    }
+
+    #[Test]
+    public function public_feed_address_is_recorded(): void
+    {
+        $this->get('/pdf?json=' . urlencode('https://example.test/feed?secret=1'));
+
+        $this->assertSame('https://example.test/feed', UsageEvent::first()->feed_url);
     }
 
     #[Test]

@@ -3,19 +3,24 @@
 namespace App\Support;
 
 /**
- * Fingerprints a feed URL for usage analytics without ever persisting the
- * URL itself — Google Sheets links act as access credentials, so only the
- * hash, host, and source type are safe to store.
+ * Identifies a feed for usage analytics. Google Sheets links act as access
+ * credentials, so for them only the hash, host, and source type are kept;
+ * public feeds also keep their address, minus any query parameter other
+ * than `action` (query strings can carry access keys).
  */
 final class FeedIdentity
 {
     /** A host longer than this can never be a valid DNS name (max 253 chars). */
     private const MAX_HOST_LENGTH = 253;
 
+    /** Matches the `feed_url` column length. */
+    private const MAX_URL_LENGTH = 2048;
+
     public function __construct(
         public readonly ?string $hash,
         public readonly ?string $host,
         public readonly string $sourceType,
+        public readonly ?string $url = null,
     ) {}
 
     public static function fromUrl(?string $url): self
@@ -67,7 +72,32 @@ final class FeedIdentity
             hash('sha256', $normalized),
             strlen($host) > self::MAX_HOST_LENGTH ? null : $host,
             self::detectSourceType($path, $queryParams),
+            self::publicUrl($parts, $scheme, $queryParams),
         );
+    }
+
+    /**
+     * The address to store for a public feed: scheme, host, port and path as given,
+     * plus `action` when present. Null for anything that isn't a plain http(s) URL.
+     *
+     * @param  array<string, mixed>  $parts
+     * @param  array<string, mixed>  $queryParams
+     */
+    private static function publicUrl(array $parts, string $scheme, array $queryParams): ?string
+    {
+        if (!in_array($scheme, ['http', 'https'], true) || strlen($parts['host']) > self::MAX_HOST_LENGTH) {
+            return null;
+        }
+
+        $url = $scheme . '://' . strtolower($parts['host'])
+            . (isset($parts['port']) ? ':' . $parts['port'] : '')
+            . ($parts['path'] ?? '');
+
+        if (is_string($queryParams['action'] ?? null)) {
+            $url .= '?' . http_build_query(['action' => $queryParams['action']]);
+        }
+
+        return strlen($url) > self::MAX_URL_LENGTH ? null : $url;
     }
 
     /**
