@@ -50,7 +50,7 @@ export default function Usage({
             </div>
 
             <section className="mb-5">
-                <h2 className="h5">Sources</h2>
+                <h2 className="h5">Sources (all time)</h2>
                 <SourcesChart sources={sources} />
             </section>
 
