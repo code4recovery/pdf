@@ -1,11 +1,5 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
-import { sourceTypeLabel } from '../sourceTypes';
-
-const COLOURS = {
-    tsml: 'var(--bs-primary)',
-    google_sheet: 'var(--bs-success)',
-    json: 'var(--bs-warning)',
-};
+import { sourceTypeColour, sourceTypeLabel } from '../sourceTypes';
 
 /**
  * Share of successful PDFs by feed source, as a donut with a legend of PDF and feed counts.
@@ -33,7 +27,7 @@ export default function SourcesChart({ sources }) {
                             isAnimationActive={false}
                         >
                             {sources.map((row) => (
-                                <Cell key={row.source_type} fill={COLOURS[row.source_type] ?? 'var(--bs-secondary)'} />
+                                <Cell key={row.source_type} fill={sourceTypeColour(row.source_type)} />
                             ))}
                         </Pie>
                         <Tooltip
@@ -53,7 +47,7 @@ export default function SourcesChart({ sources }) {
                     <li key={row.source_type} className="d-flex align-items-center gap-2 mb-2">
                         <span
                             className="dash-pill-dot"
-                            style={{ background: COLOURS[row.source_type] ?? 'var(--bs-secondary)' }}
+                            style={{ background: sourceTypeColour(row.source_type) }}
                         ></span>
                         <span className="fw-semibold">{sourceTypeLabel(row.source_type)}</span>
                         <span className="text-muted">
