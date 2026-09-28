@@ -80,3 +80,84 @@
     /* !important is required to override Bootstrap's own !important on the .text-warning-emphasis utility. */
     color: #664d03 !important;
 }
+
+.dash-chevron {
+    display: inline-block;
+    width: 0.75rem;
+    color: var(--bs-secondary-color);
+}
+
+.dash-table .dash-subrow > td {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+    background: var(--bs-tertiary-bg);
+    font-size: 0.9375rem;
+}
+
+.dash-top {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+}
+
+@media (max-width: 1199.98px) {
+    .dash-top {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .dash-card-wide {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .dash-top {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dash-card {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+}
+
+.dash-card-title {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--bs-secondary-color);
+}
+
+.dash-card-value {
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0.25rem 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.dash-card-detail {
+    font-size: 0.8125rem;
+    color: var(--bs-secondary-color);
+}
+
+.dash-table .dash-subrow .table {
+    --bs-table-bg: transparent;
+}
+
+.dash-table .dash-subrow .table th,
+.dash-table .dash-subrow .table td {
+    padding: 0.4rem 0.5rem;
+    background: transparent;
+}
+
+/* Links on the shaded expanded rows need the deeper link shade to keep 4.5:1 contrast in both themes. */
+.dash-table .dash-subrow a {
+    color: var(--bs-primary-text-emphasis, var(--bs-primary-text));
+}
+
+/* Header sort buttons and row toggles inherit their colour; skip Bootstrap's colour fade so a theme switch applies at once. */
+.dash-table .btn-link {
+    transition: none;
+}

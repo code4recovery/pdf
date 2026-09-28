@@ -1,3 +1,4 @@
+import { Fragment, useState } from 'react';
 import {
     columnFilteringFeature,
     createFilteredRowModel,
@@ -10,7 +11,7 @@ import {
     tableFeatures,
     useTable,
 } from '@tanstack/react-table';
-import '../../css/dashboard.css';
+import '../dashboard.css';
 
 const features = tableFeatures({
     rowSortingFeature,
@@ -28,8 +29,13 @@ const SORT_ARROWS = { asc: ' ▲', desc: ' ▼' };
  * A Bootstrap-styled table with click-to-sort headers and an optional search box.
  *
  * `columns` are TanStack column definitions; `data` must be a stable array (a prop or memoised value).
+ * Pass `renderExpanded(row)` to make each row expandable: the first cell gets a toggle, and the returned
+ * content is shown in a full-width row underneath.
  */
-export default function DataTable({ columns, data, searchPlaceholder, emptyMessage = 'No activity yet.' }) {
+export default function DataTable({ columns, data, searchPlaceholder, renderExpanded, emptyMessage = 'No activity yet.' }) {
+    const [expanded, setExpanded] = useState({});
+    const toggle = (id) => setExpanded((current) => ({ ...current, [id]: !current[id] }));
+
     const table = useTable({
         features,
         columns,
@@ -87,15 +93,43 @@ export default function DataTable({ columns, data, searchPlaceholder, emptyMessa
                         ))}
                     </thead>
                     <tbody>
-                        {rows.map((row) => (
-                            <tr key={row.id}>
-                                {row.getAllCells().map((cell) => (
-                                    <td key={cell.id} className={cell.column.columnDef.meta?.numeric ? 'num' : undefined}>
-                                        <table.FlexRender cell={cell} />
-                                    </td>
-                                ))}
-                            </tr>
-                        ))}
+                        {rows.map((row) => {
+                            const rowKey = row.original.id ?? row.id;
+                            const isOpen = Boolean(renderExpanded && expanded[rowKey]);
+                            const panelId = `expanded-${row.id}`;
+
+                            return (
+                                <Fragment key={row.id}>
+                                    <tr>
+                                        {row.getAllCells().map((cell, i) => (
+                                            <td key={cell.id} className={cell.column.columnDef.meta?.numeric ? 'num' : undefined}>
+                                                {renderExpanded && i === 0 ? (
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-link p-0 text-reset text-decoration-none d-inline-flex align-items-center gap-2"
+                                                        aria-expanded={isOpen}
+                                                        aria-controls={panelId}
+                                                        onClick={() => toggle(rowKey)}
+                                                    >
+                                                        <span aria-hidden="true" className="dash-chevron">
+                                                            {isOpen ? '▾' : '▸'}
+                                                        </span>
+                                                        <table.FlexRender cell={cell} />
+                                                    </button>
+                                                ) : (
+                                                    <table.FlexRender cell={cell} />
+                                                )}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                    {isOpen && (
+                                        <tr id={panelId} className="dash-subrow">
+                                            <td colSpan={columnCount}>{renderExpanded(row.original)}</td>
+                                        </tr>
+                                    )}
+                                </Fragment>
+                            );
+                        })}
                         {rows.length === 0 && (
                             <tr>
                                 <td colSpan={columnCount} className="text-muted">

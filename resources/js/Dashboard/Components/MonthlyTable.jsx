@@ -1,4 +1,4 @@
-import '../../css/dashboard.css';
+import '../dashboard.css';
 
 /**
  * Month-by-month activity, newest first, with a bar showing each month's PDFs against the busiest month.

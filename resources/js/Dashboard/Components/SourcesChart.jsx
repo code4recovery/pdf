@@ -12,16 +12,16 @@ export default function SourcesChart({ sources }) {
     }
 
     return (
-        <div className="d-flex flex-wrap align-items-center gap-4">
-            <div style={{ width: 160, height: 160 }}>
+        <div className="d-flex flex-wrap align-items-center gap-3">
+            <div style={{ width: 120, height: 120 }}>
                 <ResponsiveContainer>
                     <PieChart>
                         <Pie
                             data={sources}
                             dataKey="pdfs"
                             nameKey="source_type"
-                            innerRadius={48}
-                            outerRadius={76}
+                            innerRadius={36}
+                            outerRadius={58}
                             stroke="var(--bs-body-bg)"
                             strokeWidth={2}
                             isAnimationActive={false}
@@ -44,7 +44,7 @@ export default function SourcesChart({ sources }) {
             </div>
             <ul className="list-unstyled mb-0">
                 {sources.map((row) => (
-                    <li key={row.source_type} className="d-flex align-items-center gap-2 mb-2">
+                    <li key={row.source_type} className="d-flex flex-wrap align-items-center gap-2 mb-1 small">
                         <span
                             className="dash-pill-dot"
                             style={{ background: sourceTypeColour(row.source_type) }}

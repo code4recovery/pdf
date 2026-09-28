@@ -2,10 +2,12 @@ import { Link, router } from '@inertiajs/react';
 import FeedName from '../Components/FeedName';
 import MonthlyTable from '../Components/MonthlyTable';
 import SourcesChart from '../Components/SourcesChart';
+import StatCards from '../Components/StatCards';
+import SettingsTable from '../Components/SettingsTable';
 import Sparkline from '../Components/Sparkline';
 import ThemeToggle from '../Components/ThemeToggle';
-import { OutcomePill, Pill, SourcePill } from '../Components/Pill';
-import '../../css/dashboard.css';
+import { SourcePill } from '../Components/Pill';
+import '../dashboard.css';
 
 const OUTCOME_MEANINGS = {
     fetch_failed: "The feed couldn't be downloaded",
@@ -20,6 +22,13 @@ const FEED_STATUS_MEANINGS = {
     404: "The feed address doesn't exist",
     500: 'The feed site had a server error',
 };
+
+/** 'fetch_failed' → 'Fetch failed'. */
+function outcomeLabel(outcome) {
+    const words = outcome.replaceAll('_', ' ');
+
+    return words.charAt(0).toUpperCase() + words.slice(1);
+}
 
 function failureMeaning(row) {
     return FEED_STATUS_MEANINGS[row.upstream_status] ?? OUTCOME_MEANINGS[row.outcome] ?? '';
@@ -44,23 +53,8 @@ function handleSignOut(e) {
     router.post('/logout');
 }
 
-function groupBySetting(settings) {
-    const groups = [];
-    const index = {};
-
-    settings.forEach((row) => {
-        if (!(row.setting in index)) {
-            index[row.setting] = groups.length;
-            groups.push({ setting: row.setting, values: [] });
-        }
-
-        groups[index[row.setting]].values.push(row);
-    });
-
-    return groups;
-}
-
 export default function Usage({
+    highlights,
     monthly,
     sources,
     topFeeds,
@@ -69,7 +63,6 @@ export default function Usage({
     settings,
     heaviest,
 }) {
-    const settingGroups = groupBySetting(settings);
 
     return (
         <main className="container-lg my-5">
@@ -86,8 +79,13 @@ export default function Usage({
             </div>
 
             <section className="mb-5">
-                <h2 className="h5">Sources (all time)</h2>
-                <SourcesChart sources={sources} />
+                <div className="dash-top">
+                    <div className="dash-card dash-card-wide">
+                        <h2 className="dash-card-title mb-2">Sources (all time)</h2>
+                        <SourcesChart sources={sources} />
+                    </div>
+                    <StatCards highlights={highlights} failures={failures} />
+                </div>
             </section>
 
             <section className="mb-5">
@@ -149,7 +147,12 @@ export default function Usage({
             </section>
 
             <section className="mb-5">
-                <h2 className="h5">Top Referrers (all time)</h2>
+                <div className="d-flex justify-content-between align-items-baseline">
+                    <h2 className="h5">Top Referrers (all time)</h2>
+                    <Link href="/usage/referrers" className="small">
+                        View all referrers
+                    </Link>
+                </div>
                 <div className="table-responsive dash-table">
                     <table className="table">
                         <thead>
@@ -196,9 +199,7 @@ export default function Usage({
                         <tbody>
                             {failures.rows.map((row) => (
                                 <tr key={`${row.outcome}-${row.upstream_status}`}>
-                                    <td>
-                                        <OutcomePill outcome={row.outcome} />
-                                    </td>
+                                    <td>{outcomeLabel(row.outcome)}</td>
                                     <td className="text-muted">{failureMeaning(row)}</td>
                                     <td className="num">{row.upstream_status ?? '—'}</td>
                                     <td className="num">{row.count}</td>
@@ -219,39 +220,7 @@ export default function Usage({
 
             <section className="mb-5">
                 <h2 className="h5">Settings (last 90 days)</h2>
-                <div className="table-responsive dash-table">
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th>Setting</th>
-                                <th>Value</th>
-                                <th className="num">Count</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {settingGroups.map((group) =>
-                                group.values.map((row, i) => (
-                                    <tr key={`${group.setting}-${row.value}`}>
-                                        {i === 0 && (
-                                            <td rowSpan={group.values.length}>{group.setting}</td>
-                                        )}
-                                        <td>
-                                            <Pill>{row.value}</Pill>
-                                        </td>
-                                        <td className="num">{row.count}</td>
-                                    </tr>
-                                ))
-                            )}
-                            {settingGroups.length === 0 && (
-                                <tr>
-                                    <td colSpan="3" className="text-muted">
-                                        No activity yet.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                <SettingsTable settings={settings} />
             </section>
 
             <section className="mb-5">

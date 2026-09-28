@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import MonthlyChart from '../Components/MonthlyChart';
 import MonthlyTable from '../Components/MonthlyTable';
 
 export default function UsageMonths({ monthly }) {
@@ -11,6 +12,14 @@ export default function UsageMonths({ monthly }) {
                 </Link>
             </div>
 
+            {monthly.length > 0 && (
+                <section className="mb-5">
+                    <h2 className="h5">Last 12 Months</h2>
+                    <MonthlyChart monthly={monthly.slice(0, 12)} />
+                </section>
+            )}
+
+            <h2 className="h5">Every Month</h2>
             <p className="text-muted">Every month since the service started recording, newest first.</p>
 
             <MonthlyTable monthly={monthly} />

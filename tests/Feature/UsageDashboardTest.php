@@ -35,6 +35,7 @@ class UsageDashboardTest extends TestCase
                 ->has('sources')
                 ->has('topFeeds')
                 ->has('topReferrers')
+                ->has('highlights.pdfs_30')
                 ->has('failures.requests')
                 ->has('failures.rows')
                 ->has('settings')
@@ -178,5 +179,53 @@ class UsageDashboardTest extends TestCase
 
         $this->assertSame(9, $failures['requests']);
         $this->assertSame(['parse_failed' => 2, 'error' => 1], array_column($failures['rows'], 'count', 'outcome'));
+    }
+
+    #[Test]
+    public function settings_list_every_known_value_including_unused_ones(): void
+    {
+        UsageEvent::factory()->count(2)->create();
+
+        $values = collect((new UsageReport())->settings())
+            ->groupBy('setting')
+            ->map(fn ($rows) => $rows->pluck('count', 'value')->all());
+
+        $this->assertSame(['day-region' => 2, 'day' => 0, 'region-day' => 0], $values['group_by']);
+        $this->assertSame(['serif' => 2, 'sans-serif' => 0], $values['font']);
+        $this->assertSame(['download' => 2, 'stream' => 0], $values['mode']);
+        $this->assertSame(['false' => 2, 'true' => 0], $values['front_cover']);
+        $this->assertSame(2, $values['language']['en']);
+        $this->assertSame(0, $values['language']['ja']);
+        $this->assertSame(['4.25x11' => 2], $values['paper']);
+    }
+
+    #[Test]
+    public function highlights_compare_the_last_thirty_days_with_the_thirty_before(): void
+    {
+        $this->travelTo('2026-09-28 12:00:00');
+
+        $old = hash('sha256', 'old-feed');
+        $returning = hash('sha256', 'returning-feed');
+        $brandNew = hash('sha256', 'brand-new-feed');
+
+        UsageMonthly::create([
+            'month' => '2026-01-01', 'event' => 'pdf_generated', 'outcome' => 'success', 'source_type' => 'tsml',
+            'feed_hash' => $old, 'feed_host' => 'old.org', 'referrer_host' => '', 'count' => 3,
+        ]);
+        UsageEvent::factory()->create(['feed_hash' => $returning, 'created_at' => now()->subDays(45)]);
+        UsageEvent::factory()->count(2)->create(['feed_hash' => $returning, 'created_at' => now()->subDays(5)]);
+        UsageEvent::factory()->create(['feed_hash' => $brandNew, 'created_at' => now()->subDays(3)]);
+        UsageEvent::factory()->create(['feed_hash' => $brandNew, 'outcome' => 'fetch_failed', 'created_at' => now()->subDays(3)]);
+        UsageEvent::factory()->create(['event' => 'form_opened', 'feed_hash' => $brandNew, 'created_at' => now()->subDays(2)]);
+
+        $this->assertSame([
+            'pdfs_30' => 3,
+            'pdfs_prev_30' => 1,
+            'active_feeds_30' => 2,
+            'total_feeds' => 3,
+            'new_feeds_30' => 1,
+            'requests_30' => 4,
+            'failures_30' => 1,
+        ], (new UsageReport())->highlights());
     }
 }

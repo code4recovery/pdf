@@ -19,6 +19,8 @@ class LoginController extends BaseController
      */
     public function show(): Response
     {
+        Inertia::setRootView('dashboard');
+
         return Inertia::render('Login');
     }
 

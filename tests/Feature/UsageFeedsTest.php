@@ -184,6 +184,18 @@ class UsageFeedsTest extends TestCase
     }
 
     #[Test]
+    public function top_feeds_break_ties_by_most_recent_use(): void
+    {
+        UsageEvent::factory()->create(['feed_hash' => hash('sha256', 'june'), 'feed_host' => 'june.org', 'created_at' => now()->subDays(80)]);
+        UsageEvent::factory()->create(['feed_hash' => hash('sha256', 'this-week'), 'feed_host' => 'this-week.org', 'created_at' => now()->subDays(2)]);
+        UsageEvent::factory()->create(['feed_hash' => hash('sha256', 'july'), 'feed_host' => 'july.org', 'created_at' => now()->subDays(50)]);
+
+        $hosts = array_column(app(UsageReport::class)->topFeeds(), 'host');
+
+        $this->assertSame(['this-week.org', 'july.org', 'june.org'], $hosts);
+    }
+
+    #[Test]
     public function top_feeds_still_limits_and_orders_by_pdfs(): void
     {
         $busy = hash('sha256', 'busy');

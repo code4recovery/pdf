@@ -26,3 +26,4 @@ Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')-
 Route::get('/usage', [UsageController::class, 'index'])->middleware('auth')->name('usage');
 Route::get('/usage/months', [UsageController::class, 'months'])->middleware('auth')->name('usage.months');
 Route::get('/usage/feeds', [UsageController::class, 'feeds'])->middleware('auth')->name('usage.feeds');
+Route::get('/usage/referrers', [UsageController::class, 'referrers'])->middleware('auth')->name('usage.referrers');

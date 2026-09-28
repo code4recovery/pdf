@@ -1,6 +1,8 @@
 /node_modules
 /public/build
+/public/build-dashboard
 /public/hot
+/public/dashboard.hot
 /public/storage
 /storage/*.key
 /storage/fonts/installed-fonts.json

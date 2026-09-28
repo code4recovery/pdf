@@ -14,7 +14,10 @@ class UsageController extends BaseController
      */
     public function index(UsageReport $report): Response
     {
+        Inertia::setRootView('dashboard');
+
         return Inertia::render('Usage', [
+            'highlights' => $report->highlights(),
             'monthly' => $report->monthly(12),
             'sources' => $report->sources(),
             'topFeeds' => $report->topFeeds(),
@@ -30,8 +33,22 @@ class UsageController extends BaseController
      */
     public function months(UsageReport $report): Response
     {
+        Inertia::setRootView('dashboard');
+
         return Inertia::render('UsageMonths', [
             'monthly' => $report->monthly(null),
+        ]);
+    }
+
+    /**
+     * Render the list of every site that has sent traffic to the service.
+     */
+    public function referrers(UsageReport $report): Response
+    {
+        Inertia::setRootView('dashboard');
+
+        return Inertia::render('UsageReferrers', [
+            'referrers' => $report->referrers(),
         ]);
     }
 
@@ -40,6 +57,8 @@ class UsageController extends BaseController
      */
     public function feeds(UsageReport $report): Response
     {
+        Inertia::setRootView('dashboard');
+
         return Inertia::render('UsageFeeds', [
             'feeds' => $report->feeds(),
         ]);

@@ -19,13 +19,13 @@ use Throwable;
 class RecordUsage
 {
     /** @var list<string> */
-    private const GROUP_BY_VALUES = ['day-region', 'day', 'region-day'];
+    public const GROUP_BY_VALUES = ['day-region', 'day', 'region-day'];
 
     /** @var list<string> */
-    private const FONT_VALUES = ['sans-serif', 'serif'];
+    public const FONT_VALUES = ['sans-serif', 'serif'];
 
     /** @var list<string> */
-    private const MODE_VALUES = ['download', 'stream'];
+    public const MODE_VALUES = ['download', 'stream'];
 
     /** @var list<int> */
     private const FONT_SIZES = [8, 9, 10, 11, 12, 16, 20, 24];
