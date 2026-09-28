@@ -1,6 +1,7 @@
 import { Link, router } from '@inertiajs/react';
 import FeedName from '../Components/FeedName';
 import MonthlyTable from '../Components/MonthlyTable';
+import SourcesChart from '../Components/SourcesChart';
 import { OutcomePill, Pill, SourcePill } from '../Components/Pill';
 import '../../css/dashboard.css';
 
@@ -48,6 +49,11 @@ export default function Usage({
             </div>
 
             <section className="mb-5">
+                <h2 className="h5">Sources</h2>
+                <SourcesChart sources={sources} />
+            </section>
+
+            <section className="mb-5">
                 <div className="d-flex justify-content-between align-items-baseline">
                     <h2 className="h5">Monthly Activity (last 12 months)</h2>
                     <Link href="/usage/months" className="small">
@@ -55,39 +61,6 @@ export default function Usage({
                     </Link>
                 </div>
                 <MonthlyTable monthly={monthly} />
-            </section>
-
-            <section className="mb-5">
-                <h2 className="h5">Sources</h2>
-                <div className="table-responsive dash-table">
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th>Source</th>
-                                <th className="num">PDFs</th>
-                                <th className="num">Feeds</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sources.map((row) => (
-                                <tr key={row.source_type}>
-                                    <td>
-                                        <SourcePill sourceType={row.source_type} />
-                                    </td>
-                                    <td className="num">{row.pdfs}</td>
-                                    <td className="num">{row.feeds}</td>
-                                </tr>
-                            ))}
-                            {sources.length === 0 && (
-                                <tr>
-                                    <td colSpan="3" className="text-muted">
-                                        No activity yet.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
             </section>
 
             <section className="mb-5">
