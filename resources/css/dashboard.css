@@ -1,0 +1,71 @@
+/* Usage dashboard tables: a rounded card with a tinted header, roomier rows and pill badges. */
+
+.dash-table {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.dash-table .table {
+    margin-bottom: 0;
+    font-variant-numeric: tabular-nums;
+    --bs-table-bg: transparent;
+}
+
+.dash-table thead th {
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+    font-weight: 600;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.dash-table th,
+.dash-table td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+}
+
+.dash-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.dash-table tbody tr:hover td {
+    background: var(--bs-tertiary-bg);
+}
+
+.dash-table .num {
+    text-align: right;
+}
+
+.dash-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.15rem 0.6rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    color: var(--bs-secondary-color);
+    white-space: nowrap;
+}
+
+.dash-pill-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+}
+
+.dash-bar {
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--bs-primary);
+}
+
+.dash-table a {
+    text-decoration: none;
+}
+
+.dash-table a:hover {
+    text-decoration: underline;
+}

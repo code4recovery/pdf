@@ -1,3 +1,5 @@
+import '../../css/dashboard.css';
+
 /**
  * Month-by-month activity, newest first, with a bar showing each month's PDFs against the busiest month.
  */
@@ -5,35 +7,34 @@ export default function MonthlyTable({ monthly }) {
     const maxMonthlyPdfs = Math.max(1, ...monthly.map((row) => row.pdfs));
 
     return (
-        <div className="table-responsive">
-            <table className="table table-sm align-middle">
+        <div className="table-responsive dash-table">
+            <table className="table">
                 <thead>
                     <tr>
                         <th>Month</th>
-                        <th>PDFs</th>
+                        <th className="num">PDFs</th>
                         <th style={{ width: '35%' }}></th>
-                        <th>Forms Opened</th>
-                        <th>Failures</th>
-                        <th>Unique Feeds</th>
+                        <th className="num">Forms Opened</th>
+                        <th className="num">Failures</th>
+                        <th className="num">Unique Feeds</th>
                     </tr>
                 </thead>
                 <tbody>
                     {monthly.map((row) => (
                         <tr key={row.month}>
                             <td>{row.month}</td>
-                            <td>{row.pdfs}</td>
+                            <td className="num">{row.pdfs}</td>
                             <td>
                                 <div
-                                    className="bg-primary"
+                                    className="dash-bar"
                                     style={{
-                                        height: '0.6rem',
                                         width: `${(row.pdfs / maxMonthlyPdfs) * 100}%`,
                                     }}
                                 ></div>
                             </td>
-                            <td>{row.forms_opened}</td>
-                            <td>{row.failures}</td>
-                            <td>{row.unique_feeds}</td>
+                            <td className="num">{row.forms_opened}</td>
+                            <td className="num">{row.failures}</td>
+                            <td className="num">{row.unique_feeds}</td>
                         </tr>
                     ))}
                     {monthly.length === 0 && (

@@ -10,6 +10,7 @@ import {
     tableFeatures,
     useTable,
 } from '@tanstack/react-table';
+import '../../css/dashboard.css';
 
 const features = tableFeatures({
     rowSortingFeature,
@@ -53,8 +54,8 @@ export default function DataTable({ columns, data, searchPlaceholder, emptyMessa
                     onChange={(e) => table.setGlobalFilter(e.target.value)}
                 />
             )}
-            <div className="table-responsive">
-                <table className="table table-sm">
+            <div className="table-responsive dash-table">
+                <table className="table">
                     <thead>
                         {table.getHeaderGroups().map((group) => (
                             <tr key={group.id}>
@@ -64,6 +65,7 @@ export default function DataTable({ columns, data, searchPlaceholder, emptyMessa
                                     return (
                                         <th
                                             key={header.id}
+                                            className={header.column.columnDef.meta?.numeric ? 'num' : undefined}
                                             aria-sort={sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : undefined}
                                         >
                                             {header.column.getCanSort() ? (
@@ -88,7 +90,7 @@ export default function DataTable({ columns, data, searchPlaceholder, emptyMessa
                         {rows.map((row) => (
                             <tr key={row.id}>
                                 {row.getAllCells().map((cell) => (
-                                    <td key={cell.id}>
+                                    <td key={cell.id} className={cell.column.columnDef.meta?.numeric ? 'num' : undefined}>
                                         <table.FlexRender cell={cell} />
                                     </td>
                                 ))}

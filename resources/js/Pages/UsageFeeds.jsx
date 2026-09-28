@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import DataTable from '../Components/DataTable';
 import FeedName from '../Components/FeedName';
+import { SourcePill } from '../Components/Pill';
 import { sourceTypeLabel } from '../sourceTypes';
 
 const columns = [
@@ -16,11 +17,13 @@ const columns = [
         header: 'Source',
         accessorFn: (row) => sourceTypeLabel(row.source_type),
         sortFn: 'text',
+        cell: ({ row }) => <SourcePill sourceType={row.original.source_type} />,
     },
-    { id: 'pdfs', header: 'PDFs', accessorKey: 'pdfs', sortDescFirst: true },
+    { id: 'pdfs', header: 'PDFs', accessorKey: 'pdfs', sortDescFirst: true, meta: { numeric: true } },
     {
         id: 'meetings',
         header: 'Meetings',
+        meta: { numeric: true },
         accessorFn: (row) => row.meetings ?? undefined,
         sortDescFirst: true,
         sortUndefined: 'last',

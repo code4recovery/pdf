@@ -1,7 +1,8 @@
 import { Link, router } from '@inertiajs/react';
 import FeedName from '../Components/FeedName';
 import MonthlyTable from '../Components/MonthlyTable';
-import { sourceTypeLabel } from '../sourceTypes';
+import { OutcomePill, Pill, SourcePill } from '../Components/Pill';
+import '../../css/dashboard.css';
 
 function handleSignOut(e) {
     e.preventDefault();
@@ -58,21 +59,23 @@ export default function Usage({
 
             <section className="mb-5">
                 <h2 className="h5">Sources</h2>
-                <div className="table-responsive">
-                    <table className="table table-sm">
+                <div className="table-responsive dash-table">
+                    <table className="table">
                         <thead>
                             <tr>
                                 <th>Source</th>
-                                <th>PDFs</th>
-                                <th>Feeds</th>
+                                <th className="num">PDFs</th>
+                                <th className="num">Feeds</th>
                             </tr>
                         </thead>
                         <tbody>
                             {sources.map((row) => (
                                 <tr key={row.source_type}>
-                                    <td>{sourceTypeLabel(row.source_type)}</td>
-                                    <td>{row.pdfs}</td>
-                                    <td>{row.feeds}</td>
+                                    <td>
+                                        <SourcePill sourceType={row.source_type} />
+                                    </td>
+                                    <td className="num">{row.pdfs}</td>
+                                    <td className="num">{row.feeds}</td>
                                 </tr>
                             ))}
                             {sources.length === 0 && (
@@ -94,14 +97,14 @@ export default function Usage({
                         View all feeds
                     </Link>
                 </div>
-                <div className="table-responsive">
-                    <table className="table table-sm">
+                <div className="table-responsive dash-table">
+                    <table className="table">
                         <thead>
                             <tr>
                                 <th>Feed</th>
                                 <th>Source</th>
-                                <th>PDFs</th>
-                                <th>Meetings</th>
+                                <th className="num">PDFs</th>
+                                <th className="num">Meetings</th>
                                 <th>Last Used</th>
                             </tr>
                         </thead>
@@ -111,9 +114,11 @@ export default function Usage({
                                     <td>
                                         <FeedName feed={row} />
                                     </td>
-                                    <td>{sourceTypeLabel(row.source_type)}</td>
-                                    <td>{row.pdfs}</td>
-                                    <td>{row.meetings ?? '—'}</td>
+                                    <td>
+                                        <SourcePill sourceType={row.source_type} />
+                                    </td>
+                                    <td className="num">{row.pdfs}</td>
+                                    <td className="num">{row.meetings ?? '—'}</td>
                                     <td>{row.last_used}</td>
                                 </tr>
                             ))}
@@ -131,21 +136,21 @@ export default function Usage({
 
             <section className="mb-5">
                 <h2 className="h5">Top Referrers</h2>
-                <div className="table-responsive">
-                    <table className="table table-sm">
+                <div className="table-responsive dash-table">
+                    <table className="table">
                         <thead>
                             <tr>
                                 <th>Host</th>
-                                <th>Forms Opened</th>
-                                <th>PDFs</th>
+                                <th className="num">Forms Opened</th>
+                                <th className="num">PDFs</th>
                             </tr>
                         </thead>
                         <tbody>
                             {topReferrers.map((row) => (
                                 <tr key={row.host}>
                                     <td>{row.host}</td>
-                                    <td>{row.forms_opened}</td>
-                                    <td>{row.pdfs}</td>
+                                    <td className="num">{row.forms_opened}</td>
+                                    <td className="num">{row.pdfs}</td>
                                 </tr>
                             ))}
                             {topReferrers.length === 0 && (
@@ -162,21 +167,23 @@ export default function Usage({
 
             <section className="mb-5">
                 <h2 className="h5">Outcomes</h2>
-                <div className="table-responsive">
-                    <table className="table table-sm">
+                <div className="table-responsive dash-table">
+                    <table className="table">
                         <thead>
                             <tr>
                                 <th>Outcome</th>
-                                <th>Upstream Status</th>
-                                <th>Count</th>
+                                <th className="num">Upstream Status</th>
+                                <th className="num">Count</th>
                             </tr>
                         </thead>
                         <tbody>
                             {outcomes.map((row) => (
                                 <tr key={`${row.outcome}-${row.upstream_status}`}>
-                                    <td>{row.outcome}</td>
-                                    <td>{row.upstream_status ?? '—'}</td>
-                                    <td>{row.count}</td>
+                                    <td>
+                                        <OutcomePill outcome={row.outcome} />
+                                    </td>
+                                    <td className="num">{row.upstream_status ?? '—'}</td>
+                                    <td className="num">{row.count}</td>
                                 </tr>
                             ))}
                             {outcomes.length === 0 && (
@@ -193,13 +200,13 @@ export default function Usage({
 
             <section className="mb-5">
                 <h2 className="h5">Settings</h2>
-                <div className="table-responsive">
-                    <table className="table table-sm">
+                <div className="table-responsive dash-table">
+                    <table className="table">
                         <thead>
                             <tr>
                                 <th>Setting</th>
                                 <th>Value</th>
-                                <th>Count</th>
+                                <th className="num">Count</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -209,8 +216,10 @@ export default function Usage({
                                         {i === 0 && (
                                             <td rowSpan={group.values.length}>{group.setting}</td>
                                         )}
-                                        <td>{row.value}</td>
-                                        <td>{row.count}</td>
+                                        <td>
+                                            <Pill>{row.value}</Pill>
+                                        </td>
+                                        <td className="num">{row.count}</td>
                                     </tr>
                                 ))
                             )}
@@ -228,16 +237,16 @@ export default function Usage({
 
             <section className="mb-5">
                 <h2 className="h5">Heaviest Requests</h2>
-                <div className="table-responsive">
-                    <table className="table table-sm">
+                <div className="table-responsive dash-table">
+                    <table className="table">
                         <thead>
                             <tr>
                                 <th>When</th>
                                 <th>Feed</th>
-                                <th>Meetings</th>
+                                <th className="num">Meetings</th>
                                 <th>Chunked</th>
-                                <th>Duration (ms)</th>
-                                <th>Peak Memory (MB)</th>
+                                <th className="num">Duration (ms)</th>
+                                <th className="num">Peak Memory (MB)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -245,10 +254,10 @@ export default function Usage({
                                 <tr key={i}>
                                     <td>{row.when}</td>
                                     <td>{row.label_or_host || '—'}</td>
-                                    <td>{row.meeting_count ?? '—'}</td>
+                                    <td className="num">{row.meeting_count ?? '—'}</td>
                                     <td>{row.chunked ? 'Yes' : 'No'}</td>
-                                    <td>{row.duration_ms}</td>
-                                    <td>{row.peak_memory_mb}</td>
+                                    <td className="num">{row.duration_ms}</td>
+                                    <td className="num">{row.peak_memory_mb}</td>
                                 </tr>
                             ))}
                             {heaviest.length === 0 && (
