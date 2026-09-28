@@ -90,6 +90,35 @@ final class UsageReport
     }
 
     /**
+     * The last 12 months, oldest first, each keyed by 'Y-m' with a zero count.
+     *
+     * @return array<string, int>
+     */
+    private function trendMonths(): array
+    {
+        $months = [];
+        $month = now()->startOfMonth()->subMonthsNoOverflow(11);
+
+        for ($i = 0; $i < 12; $i++) {
+            $months[$month->format('Y-m')] = 0;
+            $month->addMonthNoOverflow();
+        }
+
+        return $months;
+    }
+
+    /**
+     * @param  array{trend: array<string, int>}  $bucket
+     * @param  array<string, int>  $trendMonths
+     */
+    private function addToTrend(array &$bucket, array $trendMonths, string $month, int $count): void
+    {
+        if (array_key_exists($month, $trendMonths)) {
+            $bucket['trend'][$month] = ($bucket['trend'][$month] ?? 0) + $count;
+        }
+    }
+
+    /**
      * The first month with any recorded activity in either table, or null if there is none.
      */
     private function firstActiveMonth(): ?Carbon
@@ -196,7 +225,7 @@ final class UsageReport
     /**
      * The busiest feeds of all time, most PDFs first.
      *
-     * @return list<array{fingerprint: string, label: ?string, host: ?string, url: ?string, source_type: string, pdfs: int, meetings: ?int, last_used: string}>
+     * @return list<array{fingerprint: string, label: ?string, host: ?string, url: ?string, source_type: string, pdfs: int, meetings: ?int, last_used: string, trend: list<int>}>
      */
     public function topFeeds(int $limit = 25): array
     {
@@ -210,7 +239,7 @@ final class UsageReport
     /**
      * Every feed that has produced a PDF, alphabetical by label, then host, then fingerprint.
      *
-     * @return list<array{fingerprint: string, label: ?string, host: ?string, url: ?string, source_type: string, pdfs: int, meetings: ?int, last_used: string}>
+     * @return list<array{fingerprint: string, label: ?string, host: ?string, url: ?string, source_type: string, pdfs: int, meetings: ?int, last_used: string, trend: list<int>}>
      */
     public function feeds(): array
     {
@@ -225,11 +254,12 @@ final class UsageReport
     }
 
     /**
-     * @return list<array{fingerprint: string, label: ?string, host: ?string, url: ?string, source_type: string, pdfs: int, meetings: ?int, last_used: string}>
+     * @return list<array{fingerprint: string, label: ?string, host: ?string, url: ?string, source_type: string, pdfs: int, meetings: ?int, last_used: string, trend: list<int>}>
      */
     private function feedRows(): array
     {
         $buckets = [];
+        $trendMonths = $this->trendMonths();
 
         foreach (UsageMonthly::query()->where('event', 'pdf_generated')->where('outcome', 'success')->where('feed_hash', '!=', '')->get() as $row) {
             $bucket = &$this->feedBucket($buckets, $row->feed_hash);
@@ -243,6 +273,7 @@ final class UsageReport
             $bucket['url'] = $row->feed_url ?? $bucket['url'];
 
             $this->extendLastUsed($bucket, $row->month);
+            $this->addToTrend($bucket, $trendMonths, substr($row->month, 0, 7), $row->count);
             unset($bucket);
         }
 
@@ -258,6 +289,7 @@ final class UsageReport
             $bucket['url'] = $event->feed_url ?? $bucket['url'];
 
             $this->extendLastUsed($bucket, $event->created_at->toDateString());
+            $this->addToTrend($bucket, $trendMonths, $event->created_at->format('Y-m'), 1);
 
             if ($event->meeting_count !== null && ($bucket['meetings_at'] === null || $event->created_at->gte($bucket['meetings_at']))) {
                 $bucket['meetings'] = $event->meeting_count;
@@ -279,6 +311,7 @@ final class UsageReport
                 'pdfs' => $bucket['pdfs'],
                 'meetings' => $bucket['meetings'],
                 'last_used' => $bucket['last_used'],
+                'trend' => array_values(array_replace($trendMonths, $bucket['trend'])),
             ],
             array_keys($buckets),
             $buckets,
@@ -286,13 +319,13 @@ final class UsageReport
     }
 
     /**
-     * @param  array<string, array{pdfs: int, source_type: string, host: ?string, url: ?string, last_used: string, meetings: ?int, meetings_at: ?\Illuminate\Support\Carbon}>  $buckets
-     * @return array{pdfs: int, source_type: string, host: ?string, url: ?string, last_used: string, meetings: ?int, meetings_at: ?\Illuminate\Support\Carbon}
+     * @param  array<string, array{pdfs: int, source_type: string, host: ?string, url: ?string, last_used: string, meetings: ?int, meetings_at: ?\Illuminate\Support\Carbon, trend: array<string, int>}>  $buckets
+     * @return array{pdfs: int, source_type: string, host: ?string, url: ?string, last_used: string, meetings: ?int, meetings_at: ?\Illuminate\Support\Carbon, trend: array<string, int>}
      */
     private function &feedBucket(array &$buckets, string $key): array
     {
         if (!isset($buckets[$key])) {
-            $buckets[$key] = ['pdfs' => 0, 'source_type' => 'json', 'host' => null, 'last_used' => '0000-00-00', 'url' => null, 'meetings' => null, 'meetings_at' => null];
+            $buckets[$key] = ['pdfs' => 0, 'source_type' => 'json', 'host' => null, 'last_used' => '0000-00-00', 'url' => null, 'meetings' => null, 'meetings_at' => null, 'trend' => []];
         }
 
         return $buckets[$key];

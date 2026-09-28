@@ -2,6 +2,7 @@ import { Link, router } from '@inertiajs/react';
 import FeedName from '../Components/FeedName';
 import MonthlyTable from '../Components/MonthlyTable';
 import SourcesChart from '../Components/SourcesChart';
+import Sparkline from '../Components/Sparkline';
 import { OutcomePill, Pill, SourcePill } from '../Components/Pill';
 import '../../css/dashboard.css';
 
@@ -77,6 +78,7 @@ export default function Usage({
                                 <th>Feed</th>
                                 <th>Source</th>
                                 <th className="num">PDFs</th>
+                                <th>Last 12 Months</th>
                                 <th className="num">Meetings</th>
                                 <th>Last Used</th>
                             </tr>
@@ -91,13 +93,16 @@ export default function Usage({
                                         <SourcePill sourceType={row.source_type} />
                                     </td>
                                     <td className="num">{row.pdfs}</td>
+                                    <td>
+                                        <Sparkline values={row.trend} />
+                                    </td>
                                     <td className="num">{row.meetings ?? '—'}</td>
                                     <td>{row.last_used}</td>
                                 </tr>
                             ))}
                             {topFeeds.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="text-muted">
+                                    <td colSpan="6" className="text-muted">
                                         No activity yet.
                                     </td>
                                 </tr>

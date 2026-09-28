@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import DataTable from '../Components/DataTable';
 import FeedName from '../Components/FeedName';
 import { SourcePill } from '../Components/Pill';
+import Sparkline from '../Components/Sparkline';
 import { sourceTypeLabel } from '../sourceTypes';
 
 const columns = [
@@ -20,6 +21,14 @@ const columns = [
         cell: ({ row }) => <SourcePill sourceType={row.original.source_type} />,
     },
     { id: 'pdfs', header: 'PDFs', accessorKey: 'pdfs', sortDescFirst: true, meta: { numeric: true } },
+    {
+        id: 'trend',
+        header: 'Last 12 Months',
+        accessorKey: 'trend',
+        enableSorting: false,
+        enableGlobalFilter: false,
+        cell: ({ getValue }) => <Sparkline values={getValue()} />,
+    },
     {
         id: 'meetings',
         header: 'Meetings',

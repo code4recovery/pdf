@@ -147,6 +147,43 @@ class UsageFeedsTest extends TestCase
     }
 
     #[Test]
+    public function feeds_carry_twelve_months_of_pdf_counts_oldest_first(): void
+    {
+        $this->travelTo('2026-09-15');
+
+        $hash = hash('sha256', 'trend');
+
+        UsageMonthly::create([
+            'month' => '2025-10-01',
+            'event' => 'pdf_generated',
+            'outcome' => 'success',
+            'source_type' => 'json',
+            'feed_hash' => $hash,
+            'feed_host' => 'trend.org',
+            'referrer_host' => '',
+            'count' => 4,
+        ]);
+        UsageMonthly::create([
+            'month' => '2025-09-01',
+            'event' => 'pdf_generated',
+            'outcome' => 'success',
+            'source_type' => 'json',
+            'feed_hash' => $hash,
+            'feed_host' => 'trend.org',
+            'referrer_host' => '',
+            'count' => 9,
+        ]);
+        UsageEvent::factory()->count(2)->create(['feed_hash' => $hash, 'created_at' => '2026-09-02']);
+        UsageEvent::factory()->create(['feed_hash' => $hash, 'created_at' => '2026-07-20']);
+        UsageEvent::factory()->create(['feed_hash' => $hash, 'created_at' => '2026-07-21', 'outcome' => 'fetch_failed']);
+
+        $feed = app(UsageReport::class)->feeds()[0];
+
+        $this->assertSame([4, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2], $feed['trend']);
+        $this->assertSame(16, $feed['pdfs']);
+    }
+
+    #[Test]
     public function top_feeds_still_limits_and_orders_by_pdfs(): void
     {
         $busy = hash('sha256', 'busy');
