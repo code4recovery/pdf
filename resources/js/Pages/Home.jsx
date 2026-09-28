@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { router } from '@inertiajs/react';
+import { bookletSheet } from '../booklet';
 
 export default function Home({
     screen,
@@ -34,6 +35,7 @@ export default function Home({
     const [mode, setMode] = useState('download');
     const [frontCover, setFrontCover] = useState(null);
     const [backCover, setBackCover] = useState(null);
+    const [booklet, setBooklet] = useState(false);
     const [selectedOptions, setSelectedOptions] = useState(() => {
         if (!optionDefs) return [];
         return Object.entries(optionDefs)
@@ -48,6 +50,7 @@ export default function Home({
     // PDF generation state
     const [generating, setGenerating] = useState(false);
     const [pdfError, setPdfError] = useState(null);
+    const [bookletNotice, setBookletNotice] = useState(null);
 
     // Update state when props change (Inertia navigation)
     useEffect(() => {
@@ -75,6 +78,7 @@ export default function Home({
     function handleGenerate(e) {
         e.preventDefault();
         setPdfError(null);
+        setBookletNotice(null);
 
         const formData = new FormData();
         formData.set('json', initialJson);
@@ -91,6 +95,7 @@ export default function Home({
         selectedRegions.forEach((r) => formData.append('regions[]', r));
         if (frontCover) formData.set('front', frontCover);
         if (backCover) formData.set('back', backCover);
+        if (booklet) formData.set('booklet', '1');
 
         if (mode === 'stream') {
             submitInNewTab(formData);
@@ -107,6 +112,10 @@ export default function Home({
                     });
                 }
                 return res.blob().then((blob) => {
+                    const sheets = res.headers.get('X-Booklet-Sheets');
+                    if (sheets) {
+                        setBookletNotice(`This booklet is ${sheets} ${sheets === '1' ? 'sheet' : 'sheets'}. Check that your stapler can handle that thickness.`);
+                    }
                     const disposition = res.headers.get('Content-Disposition');
                     let filename = 'directory.pdf';
                     if (disposition) {
@@ -181,6 +190,9 @@ export default function Home({
                     {pdfError && (
                         <p className="alert alert-danger">{pdfError}</p>
                     )}
+                    {bookletNotice && (
+                        <p className="alert alert-info">{bookletNotice}</p>
+                    )}
 
                     {screen === 1 ? (
                         <Screen1
@@ -197,6 +209,8 @@ export default function Home({
                             setWidth={setWidth}
                             height={height}
                             setHeight={setHeight}
+                            booklet={booklet}
+                            setBooklet={setBooklet}
                             numbering={numbering}
                             setNumbering={setNumbering}
                             type={type}
@@ -296,6 +310,7 @@ function Screen2({
     generating,
     width, setWidth,
     height, setHeight,
+    booklet, setBooklet,
     numbering, setNumbering,
     type, setType, types,
     language, setLanguage, languages,
@@ -309,6 +324,8 @@ function Screen2({
     availableRegions, selectedRegions, setSelectedRegions,
     regionsOpen, setRegionsOpen,
 }) {
+    const sheet = booklet ? bookletSheet(width, height) : null;
+
     return (
         <form onSubmit={onSubmit} acceptCharset="UTF-8">
             <div className="mb-3">
@@ -339,6 +356,29 @@ function Screen2({
                         value={height}
                         onChange={(e) => setHeight(e.target.value)}
                     />
+                </div>
+                <div className="col-12 mb-4">
+                    <div className="form-check">
+                        <input
+                            type="checkbox"
+                            className="form-check-input"
+                            id="booklet"
+                            checked={booklet}
+                            onChange={(e) => setBooklet(e.target.checked)}
+                        />
+                        <label className="form-check-label" htmlFor="booklet">
+                            Print as booklet
+                        </label>
+                    </div>
+                    {sheet && (
+                        <div className="form-text">
+                            {sheet.name
+                                ? `Prints on ${sheet.width} × ${sheet.height} in sheets (${sheet.name}).`
+                                : `Prints on ${sheet.width} × ${sheet.height} in sheets, which is not a standard paper size.`}
+                            {sheet.flip && ` Print double-sided and choose "flip on ${sheet.flip} edge."`}
+                            {' '}Check that your stapler can handle the finished booklet's thickness.
+                        </div>
+                    )}
                 </div>
                 <div className="col-md-6 mb-4">
                     <label htmlFor="numbering" className="form-label fw-bold">Start #</label>
