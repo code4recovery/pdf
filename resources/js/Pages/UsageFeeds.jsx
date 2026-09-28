@@ -46,7 +46,7 @@ export default function UsageFeeds({ feeds }) {
         <main className="container-lg my-5">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1 className="h3 mb-0">All Feeds</h1>
-                <Link href="/usage" className="btn btn-outline-secondary btn-sm">
+                <Link href="/usage" className="btn btn-secondary btn-sm">
                     Back to dashboard
                 </Link>
             </div>

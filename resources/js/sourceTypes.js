@@ -1,5 +1,5 @@
 const SOURCE_TYPE_LABELS = {
-    tsml: '12 Step Meeting List',
+    tsml: 'TSML',
     google_sheet: 'Google Sheets',
     json: 'Other JSON',
     none: 'None',

@@ -8,15 +8,25 @@
         integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
     <script>
         (function() {
+            // A theme chosen with the dashboard's switcher (stored per browser) wins over the system setting.
+            function storedTheme() {
+                try {
+                    return localStorage.getItem('c4r-theme');
+                } catch (e) {
+                    return null;
+                }
+            }
             function setColorMode(dark) {
                 document.documentElement.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
             }
-            setColorMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
-            window
-                .matchMedia("(prefers-color-scheme: dark)")
-                .addEventListener("change", function(e) {
+            var systemDark = window.matchMedia("(prefers-color-scheme: dark)");
+            var stored = storedTheme();
+            setColorMode(stored ? stored === 'dark' : systemDark.matches);
+            systemDark.addEventListener("change", function(e) {
+                if (!storedTheme()) {
                     setColorMode(e.matches);
-                });
+                }
+            });
         })();
     </script>
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />

@@ -3,6 +3,7 @@ import FeedName from '../Components/FeedName';
 import MonthlyTable from '../Components/MonthlyTable';
 import SourcesChart from '../Components/SourcesChart';
 import Sparkline from '../Components/Sparkline';
+import ThemeToggle from '../Components/ThemeToggle';
 import { OutcomePill, Pill, SourcePill } from '../Components/Pill';
 import '../../css/dashboard.css';
 
@@ -14,7 +15,7 @@ const OUTCOME_MEANINGS = {
 };
 
 const FEED_STATUS_MEANINGS = {
-    401: '12 Step Meeting List data sharing is turned off',
+    401: 'TSML data sharing is turned off',
     403: 'The feed site refused the request',
     404: "The feed address doesn't exist",
     500: 'The feed site had a server error',
@@ -74,11 +75,14 @@ export default function Usage({
         <main className="container-lg my-5">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1 className="h3 mb-0">PDF Usage Dashboard</h1>
-                <form onSubmit={handleSignOut}>
-                    <button type="submit" className="btn btn-outline-secondary btn-sm">
-                        Sign out
-                    </button>
-                </form>
+                <div className="d-flex gap-2">
+                    <ThemeToggle />
+                    <form onSubmit={handleSignOut}>
+                        <button type="submit" className="btn btn-secondary btn-sm">
+                            Sign out
+                        </button>
+                    </form>
+                </div>
             </div>
 
             <section className="mb-5">
