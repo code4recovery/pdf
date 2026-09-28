@@ -1,6 +1,5 @@
 import { Link, router } from '@inertiajs/react';
 import FeedName from '../Components/FeedName';
-import MonthlyChart from '../Components/MonthlyChart';
 import { sourceTypeLabel } from '../sourceTypes';
 
 function handleSignOut(e) {
@@ -33,6 +32,7 @@ export default function Usage({
     settings,
     heaviest,
 }) {
+    const maxMonthlyPdfs = Math.max(1, ...monthly.map((row) => row.pdfs));
     const settingGroups = groupBySetting(settings);
 
     return (
@@ -48,13 +48,13 @@ export default function Usage({
 
             <section className="mb-5">
                 <h2 className="h5">Monthly Activity</h2>
-                {monthly.length > 0 && <MonthlyChart monthly={monthly} />}
                 <div className="table-responsive">
                     <table className="table table-sm align-middle">
                         <thead>
                             <tr>
                                 <th>Month</th>
                                 <th>PDFs</th>
+                                <th style={{ width: '35%' }}></th>
                                 <th>Forms Opened</th>
                                 <th>Failures</th>
                                 <th>Unique Feeds</th>
@@ -65,6 +65,15 @@ export default function Usage({
                                 <tr key={row.month}>
                                     <td>{row.month}</td>
                                     <td>{row.pdfs}</td>
+                                    <td>
+                                        <div
+                                            className="bg-primary"
+                                            style={{
+                                                height: '0.6rem',
+                                                width: `${(row.pdfs / maxMonthlyPdfs) * 100}%`,
+                                            }}
+                                        ></div>
+                                    </td>
                                     <td>{row.forms_opened}</td>
                                     <td>{row.failures}</td>
                                     <td>{row.unique_feeds}</td>
@@ -72,7 +81,7 @@ export default function Usage({
                             ))}
                             {monthly.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="text-muted">
+                                    <td colSpan="6" className="text-muted">
                                         No activity yet.
                                     </td>
                                 </tr>
