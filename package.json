@@ -12,7 +12,9 @@
     },
     "dependencies": {
         "@inertiajs/react": "^2.0.0",
+        "@tanstack/react-table": "^9.2.4",
         "react": "^18.3.1",
-        "react-dom": "^18.3.1"
+        "react-dom": "^18.3.1",
+        "recharts": "^3.10.1"
     }
 }

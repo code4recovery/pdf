@@ -1,5 +1,37 @@
 import { Link } from '@inertiajs/react';
+import DataTable from '../Components/DataTable';
 import { sourceTypeLabel } from '../sourceTypes';
+
+const columns = [
+    {
+        id: 'feed',
+        header: 'Feed',
+        accessorFn: (row) => row.label || row.host || '—',
+        sortFn: 'text',
+    },
+    {
+        id: 'fingerprint',
+        header: 'Fingerprint',
+        accessorKey: 'fingerprint',
+        cell: ({ getValue }) => <code>{getValue()}</code>,
+    },
+    {
+        id: 'source',
+        header: 'Source',
+        accessorFn: (row) => sourceTypeLabel(row.source_type),
+        sortFn: 'text',
+    },
+    { id: 'pdfs', header: 'PDFs', accessorKey: 'pdfs', sortDescFirst: true },
+    {
+        id: 'meetings',
+        header: 'Meetings',
+        accessorFn: (row) => row.meetings ?? undefined,
+        sortDescFirst: true,
+        sortUndefined: 'last',
+        cell: ({ getValue }) => getValue() ?? '—',
+    },
+    { id: 'last_used', header: 'Last Used', accessorKey: 'last_used', sortDescFirst: true },
+];
 
 export default function UsageFeeds({ feeds }) {
     return (
@@ -12,45 +44,11 @@ export default function UsageFeeds({ feeds }) {
             </div>
 
             <p className="text-muted">
-                {feeds.length} {feeds.length === 1 ? 'feed has' : 'feeds have'} produced a PDF, in
-                alphabetical order. Counts are all time.
+                {feeds.length} {feeds.length === 1 ? 'feed has' : 'feeds have'} produced a PDF. Counts are all
+                time. Click a column heading to sort.
             </p>
 
-            <div className="table-responsive">
-                <table className="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Feed</th>
-                            <th>Fingerprint</th>
-                            <th>Source</th>
-                            <th>PDFs</th>
-                            <th>Meetings</th>
-                            <th>Last Used</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {feeds.map((row) => (
-                            <tr key={row.fingerprint}>
-                                <td>{row.label || row.host || '—'}</td>
-                                <td>
-                                    <code>{row.fingerprint}</code>
-                                </td>
-                                <td>{sourceTypeLabel(row.source_type)}</td>
-                                <td>{row.pdfs}</td>
-                                <td>{row.meetings ?? '—'}</td>
-                                <td>{row.last_used}</td>
-                            </tr>
-                        ))}
-                        {feeds.length === 0 && (
-                            <tr>
-                                <td colSpan="6" className="text-muted">
-                                    No activity yet.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
+            <DataTable columns={columns} data={feeds} searchPlaceholder="Search feeds" />
         </main>
     );
 }
