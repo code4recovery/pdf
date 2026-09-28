@@ -47,6 +47,16 @@ class RecordUsageTest extends TestCase
     }
 
     #[Test]
+    public function booklet_setting_is_recorded(): void
+    {
+        $this->get('/pdf?json=https://example.test/feed&booklet=1')->assertOk();
+        $this->assertTrue(UsageEvent::first()->settings['booklet']);
+
+        $this->get('/pdf?json=https://example.test/feed')->assertOk();
+        $this->assertFalse(UsageEvent::orderByDesc('id')->first()->settings['booklet']);
+    }
+
+    #[Test]
     public function row_never_contains_the_feed_url(): void
     {
         Http::fake([

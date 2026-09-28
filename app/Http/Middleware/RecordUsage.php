@@ -146,6 +146,7 @@ class RecordUsage
             'regions_selected' => !empty($regions),
             'front_cover' => $request->hasFile('front'),
             'back_cover' => $request->hasFile('back'),
+            'booklet' => $request->boolean('booklet'),
             'options' => $this->optionsSetting($request),
         ];
     }

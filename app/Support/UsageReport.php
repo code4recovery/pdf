@@ -31,6 +31,7 @@ final class UsageReport
         'mode',
         'front_cover',
         'back_cover',
+        'booklet',
         'regions_selected',
     ];
 
