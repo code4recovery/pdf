@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
@@ -44,5 +45,27 @@ abstract class TestCase extends BaseTestCase
     protected function countPdfPages(string $pdf): int
     {
         return preg_match_all('~/Type\s*/Page[^s]~', $pdf);
+    }
+
+    /**
+     * Build a one-or-more page PDF in memory at the given size in points, with the label
+     * left uncompressed so it can be located in merged output.
+     */
+    protected function coverPdf(string $label, float $width = 306, float $height = 792, int $pages = 1, string $orientation = 'P'): string
+    {
+        $pdf = new \FPDF($orientation, 'pt', [$width, $height]);
+        $pdf->SetCompression(false);
+        $pdf->SetFont('Helvetica', '', 24);
+        for ($i = 0; $i < $pages; $i++) {
+            $pdf->AddPage();
+            $pdf->Cell(0, 30, $label);
+        }
+
+        return $pdf->Output('S');
+    }
+
+    protected function upload(string $name, string $bytes): UploadedFile
+    {
+        return UploadedFile::fake()->createWithContent($name, $bytes);
     }
 }

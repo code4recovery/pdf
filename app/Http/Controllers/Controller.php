@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
+use App\Support\BookletLayout;
 use App\Support\UsageRecorder;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
@@ -357,6 +358,64 @@ class Controller extends BaseController
     }
 
     /**
+     * Arrange the book two pages per sheet in saddle-stitch folding order. Each sheet is
+     * twice the page width; blank slots from the layout are left empty.
+     *
+     * @param list<string> $paths Source files in book order.
+     * @return array{bytes: string, sheets: int}
+     */
+    private function bookletPdfFiles(array $paths, bool $hasBack, float $pageWidth, float $pageHeight): array
+    {
+        $writer = new Fpdi('P', 'pt');
+        $templates = [];
+        $pageCounts = [];
+
+        foreach ($paths as $source => $path) {
+            $pageCounts[$source] = $writer->setSourceFile($path);
+            for ($page = 1; $page <= $pageCounts[$source]; $page++) {
+                $templates[$source][$page] = $writer->importPage($page);
+            }
+        }
+
+        $sequence = BookletLayout::pageSequence($pageCounts, $hasBack);
+        $sheets = BookletLayout::sheets(count($sequence));
+        $sheetWidth = 2 * $pageWidth;
+
+        foreach ($sheets as $sheet) {
+            foreach ([$sheet['front'], $sheet['back']] as [$left, $right]) {
+                $writer->AddPage($sheetWidth > $pageHeight ? 'L' : 'P', [$sheetWidth, $pageHeight]);
+
+                foreach ([[$left, 0], [$right, $pageWidth]] as [$position, $x]) {
+                    $slot = $sequence[$position - 1];
+                    if ($slot !== null) {
+                        $writer->useTemplate($templates[$slot['source']][$slot['page']], $x, 0);
+                    }
+                }
+            }
+        }
+
+        return ['bytes' => $writer->Output('S'), 'sheets' => count($sheets)];
+    }
+
+    /**
+     * Assemble the finished book from its source files, as ordinary pages or as a booklet.
+     *
+     * @param list<string|null> $paths Source files in book order; nulls (absent covers) are dropped.
+     */
+    private function bookResponse(array $paths, bool $hasBack, bool $booklet, float $width, float $height, string $filename, bool $stream): \Illuminate\Http\Response
+    {
+        $paths = array_values(array_filter($paths));
+
+        if (! $booklet) {
+            return $this->pdfResponse($this->mergePdfFiles($paths), $filename, $stream);
+        }
+
+        $book = $this->bookletPdfFiles($paths, $hasBack, $width, $height);
+
+        return $this->pdfResponse($book['bytes'], $filename, $stream, ['X-Booklet-Sheets' => (string) $book['sheets']]);
+    }
+
+    /**
      * Create an empty temp file that PHP deletes at shutdown, so it is removed even when
      * the request dies from a fatal error (memory exhaustion, execution time limit).
      */
@@ -375,11 +434,15 @@ class Controller extends BaseController
         }
     }
 
-    private function pdfResponse(string $bytes, string $filename, bool $stream): \Illuminate\Http\Response
+    /**
+     * @param array<string, string> $headers Extra response headers.
+     */
+    private function pdfResponse(string $bytes, string $filename, bool $stream, array $headers = []): \Illuminate\Http\Response
     {
         return response($bytes, 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => ($stream ? 'inline' : 'attachment') . '; filename="' . $filename . '"',
+            ...$headers,
         ]);
     }
 
@@ -498,6 +561,7 @@ class Controller extends BaseController
         if ($numbering) $numbering = intval($numbering);
         $type = request('type', false);
         $stream = request('mode') === 'stream';
+        $booklet = request()->boolean('booklet');
         $options = request('options', []);
         $group_by = request('group_by', 'day-region');
         $types = self::$spec->getTypesByLanguage($language);
@@ -512,11 +576,12 @@ class Controller extends BaseController
 
         // Set PDF filename based on choices
         $pdf_name = sprintf(
-            '%sx%s_%s-grouped_%s_directory.pdf',
+            '%sx%s_%s-grouped_%s_directory%s.pdf',
             str_replace('.', '.', request('width')),
             str_replace('.', '.', request('height')),
             $group_by,
-            date('Y-m-d')
+            date('Y-m-d'),
+            $booklet ? '-booklet' : ''
         );
 
         //process data
@@ -937,7 +1002,7 @@ class Controller extends BaseController
             $pdf = PDF::loadView('pdf', $viewData)
                 ->setPaper([0, 0, $width, $height]);
 
-            if ($covers['front'] === null && $covers['back'] === null) {
+            if ($covers['front'] === null && $covers['back'] === null && ! $booklet) {
                 return ($stream) ? $pdf->stream() : $pdf->download($pdf_name);
             }
 
@@ -945,12 +1010,11 @@ class Controller extends BaseController
             try {
                 file_put_contents($insideFile, $pdf->output());
                 unset($pdf);
-                $mergedPdf = $this->mergePdfFiles(array_values(array_filter([$covers['front'], $insideFile, $covers['back']])));
+
+                return $this->bookResponse([$covers['front'], $insideFile, $covers['back']], $covers['back'] !== null, $booklet, $width, $height, $pdf_name, $stream);
             } finally {
                 $this->deleteTempFile($insideFile);
             }
-
-            return $this->pdfResponse($mergedPdf, $pdf_name, $stream);
         }
 
         // Build chunk data arrays from the grouped collections, then free all
@@ -1014,13 +1078,11 @@ class Controller extends BaseController
             }
             unset($chunks);
 
-            $mergedPdf = $this->mergePdfFiles(array_values(array_filter([$covers['front'], ...$chunkFiles, $covers['back']])));
+            return $this->bookResponse([$covers['front'], ...$chunkFiles, $covers['back']], $covers['back'] !== null, $booklet, $width, $height, $pdf_name, $stream);
         } finally {
             foreach ($chunkFiles as $tmpFile) {
                 $this->deleteTempFile($tmpFile);
             }
         }
-
-        return $this->pdfResponse($mergedPdf, $pdf_name, $stream);
     }
 }
