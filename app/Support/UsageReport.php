@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\FeedLabel;
 use App\Models\UsageEvent;
 use App\Models\UsageMonthly;
+use Illuminate\Support\Carbon;
 
 /**
  * Reads usage_events (the raw, ~90-day window) and usage_monthly (the
@@ -35,6 +36,9 @@ final class UsageReport
     ];
 
     /**
+     * Newest month first, every month from the first with activity through the current one,
+     * quiet months included as zeros.
+     *
      * @return list<array{month: string, pdfs: int, forms_opened: int, failures: int, unique_feeds: int}>
      */
     public function monthly(int $months = 24): array
@@ -53,6 +57,16 @@ final class UsageReport
             $bucket = &$this->bucket($buckets, $event->created_at->format('Y-m'));
             $this->applyMonthlyCount($bucket, $event->event, $event->outcome, $event->feed_hash, 1);
             unset($bucket);
+        }
+
+        if ($buckets !== []) {
+            $month = Carbon::createFromFormat('Y-m', min(array_keys($buckets)))->startOfMonth();
+            $thisMonth = now()->startOfMonth();
+
+            while ($month->lte($thisMonth)) {
+                $this->bucket($buckets, $month->format('Y-m'));
+                $month->addMonthNoOverflow();
+            }
         }
 
         krsort($buckets);

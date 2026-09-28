@@ -128,6 +128,25 @@ class UsageFeedsTest extends TestCase
     }
 
     #[Test]
+    public function monthly_fills_quiet_months_from_first_activity_to_now(): void
+    {
+        $this->travelTo('2026-09-15');
+
+        UsageEvent::factory()->create(['created_at' => '2026-06-10']);
+        UsageEvent::factory()->create(['created_at' => '2026-09-01']);
+
+        $months = array_column(app(UsageReport::class)->monthly(), 'pdfs', 'month');
+
+        $this->assertSame(['2026-09' => 1, '2026-08' => 0, '2026-07' => 0, '2026-06' => 1], $months);
+    }
+
+    #[Test]
+    public function monthly_is_empty_with_no_activity(): void
+    {
+        $this->assertSame([], app(UsageReport::class)->monthly());
+    }
+
+    #[Test]
     public function top_feeds_still_limits_and_orders_by_pdfs(): void
     {
         $busy = hash('sha256', 'busy');
