@@ -69,3 +69,8 @@
 .dash-table a:hover {
     text-decoration: underline;
 }
+
+.dash-pill-solid {
+    border-color: transparent;
+    font-weight: 600;
+}

@@ -1,27 +1,26 @@
-import { sourceTypeColour, sourceTypeLabel } from '../sourceTypes';
+import { sourceTypeLabel, sourceTypeThemeColour } from '../sourceTypes';
 
 const OUTCOME_COLOURS = {
     success: 'var(--bs-success)',
     error: 'var(--bs-danger)',
 };
 
-/** A rounded label, optionally with a coloured status dot and a colour for its border and text. */
-export function Pill({ children, dot, colour }) {
+/** A rounded label, optionally with a coloured status dot. */
+export function Pill({ children, dot }) {
     return (
-        <span className="dash-pill" style={colour ? { borderColor: colour, color: colour } : undefined}>
+        <span className="dash-pill">
             {dot && <span className="dash-pill-dot" style={{ background: dot }}></span>}
             {children}
         </span>
     );
 }
 
+/** A solid badge in the source's chart colour; Bootstrap's text-bg-* picks readable text for each background. */
 export function SourcePill({ sourceType }) {
-    const colour = sourceTypeColour(sourceType);
-
     return (
-        <Pill dot={colour} colour={colour}>
+        <span className={`dash-pill dash-pill-solid text-bg-${sourceTypeThemeColour(sourceType)}`}>
             {sourceTypeLabel(sourceType)}
-        </Pill>
+        </span>
     );
 }
 
