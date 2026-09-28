@@ -161,9 +161,40 @@ final class UsageReport
     }
 
     /**
+     * The busiest feeds of all time, most PDFs first.
+     *
      * @return list<array{fingerprint: string, label: ?string, host: ?string, source_type: string, pdfs: int, last_used: string}>
      */
     public function topFeeds(int $limit = 25): array
+    {
+        $rows = $this->feedRows();
+
+        usort($rows, fn (array $a, array $b): int => $b['pdfs'] <=> $a['pdfs']);
+
+        return array_slice($rows, 0, $limit);
+    }
+
+    /**
+     * Every feed that has produced a PDF, alphabetical by label, then host, then fingerprint.
+     *
+     * @return list<array{fingerprint: string, label: ?string, host: ?string, source_type: string, pdfs: int, last_used: string}>
+     */
+    public function feeds(): array
+    {
+        $rows = $this->feedRows();
+
+        usort($rows, fn (array $a, array $b): int => strcasecmp(
+            $a['label'] ?? $a['host'] ?? $a['fingerprint'],
+            $b['label'] ?? $b['host'] ?? $b['fingerprint'],
+        ));
+
+        return $rows;
+    }
+
+    /**
+     * @return list<array{fingerprint: string, label: ?string, host: ?string, source_type: string, pdfs: int, last_used: string}>
+     */
+    private function feedRows(): array
     {
         $buckets = [];
 
@@ -195,7 +226,7 @@ final class UsageReport
 
         $labels = FeedLabel::query()->whereIn('feed_hash', array_keys($buckets))->pluck('label', 'feed_hash');
 
-        $rows = array_map(
+        return array_map(
             fn (string $hash, array $bucket): array => [
                 'fingerprint' => substr($hash, 0, 12),
                 'label' => $labels[$hash] ?? null,
@@ -207,10 +238,6 @@ final class UsageReport
             array_keys($buckets),
             $buckets,
         );
-
-        usort($rows, fn (array $a, array $b): int => $b['pdfs'] <=> $a['pdfs']);
-
-        return array_slice($rows, 0, $limit);
     }
 
     /**

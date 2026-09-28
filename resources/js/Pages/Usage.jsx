@@ -1,15 +1,5 @@
-import { router } from '@inertiajs/react';
-
-const SOURCE_TYPE_LABELS = {
-    tsml: '12 Step Meeting List',
-    google_sheet: 'Google Sheets',
-    json: 'Other JSON',
-    none: 'None',
-};
-
-function sourceTypeLabel(sourceType) {
-    return SOURCE_TYPE_LABELS[sourceType] || sourceType;
-}
+import { Link, router } from '@inertiajs/react';
+import { sourceTypeLabel } from '../sourceTypes';
 
 function handleSignOut(e) {
     e.preventDefault();
@@ -132,7 +122,12 @@ export default function Usage({
             </section>
 
             <section className="mb-5">
-                <h2 className="h5">Top Feeds (all time)</h2>
+                <div className="d-flex justify-content-between align-items-baseline">
+                    <h2 className="h5">Top Feeds (all time)</h2>
+                    <Link href="/usage/feeds" className="small">
+                        View all feeds
+                    </Link>
+                </div>
                 <div className="table-responsive">
                     <table className="table table-sm">
                         <thead>

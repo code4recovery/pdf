@@ -24,3 +24,4 @@ Route::post('/login', [LoginController::class, 'store'])->middleware(['guest', '
 Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 
 Route::get('/usage', [UsageController::class, 'index'])->middleware('auth')->name('usage');
+Route::get('/usage/feeds', [UsageController::class, 'feeds'])->middleware('auth')->name('usage.feeds');

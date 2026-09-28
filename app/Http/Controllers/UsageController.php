@@ -24,4 +24,14 @@ class UsageController extends BaseController
             'heaviest' => $report->heaviest(),
         ]);
     }
+
+    /**
+     * Render the list of every feed that has used the service.
+     */
+    public function feeds(UsageReport $report): Response
+    {
+        return Inertia::render('UsageFeeds', [
+            'feeds' => $report->feeds(),
+        ]);
+    }
 }
