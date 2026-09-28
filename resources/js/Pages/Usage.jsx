@@ -1,5 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import FeedName from '../Components/FeedName';
+import MonthlyTable from '../Components/MonthlyTable';
 import { sourceTypeLabel } from '../sourceTypes';
 
 function handleSignOut(e) {
@@ -32,7 +33,6 @@ export default function Usage({
     settings,
     heaviest,
 }) {
-    const maxMonthlyPdfs = Math.max(1, ...monthly.map((row) => row.pdfs));
     const settingGroups = groupBySetting(settings);
 
     return (
@@ -47,48 +47,13 @@ export default function Usage({
             </div>
 
             <section className="mb-5">
-                <h2 className="h5">Monthly Activity</h2>
-                <div className="table-responsive">
-                    <table className="table table-sm align-middle">
-                        <thead>
-                            <tr>
-                                <th>Month</th>
-                                <th>PDFs</th>
-                                <th style={{ width: '35%' }}></th>
-                                <th>Forms Opened</th>
-                                <th>Failures</th>
-                                <th>Unique Feeds</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {monthly.map((row) => (
-                                <tr key={row.month}>
-                                    <td>{row.month}</td>
-                                    <td>{row.pdfs}</td>
-                                    <td>
-                                        <div
-                                            className="bg-primary"
-                                            style={{
-                                                height: '0.6rem',
-                                                width: `${(row.pdfs / maxMonthlyPdfs) * 100}%`,
-                                            }}
-                                        ></div>
-                                    </td>
-                                    <td>{row.forms_opened}</td>
-                                    <td>{row.failures}</td>
-                                    <td>{row.unique_feeds}</td>
-                                </tr>
-                            ))}
-                            {monthly.length === 0 && (
-                                <tr>
-                                    <td colSpan="6" className="text-muted">
-                                        No activity yet.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                <div className="d-flex justify-content-between align-items-baseline">
+                    <h2 className="h5">Monthly Activity (last 12 months)</h2>
+                    <Link href="/usage/months" className="small">
+                        View all months
+                    </Link>
                 </div>
+                <MonthlyTable monthly={monthly} />
             </section>
 
             <section className="mb-5">

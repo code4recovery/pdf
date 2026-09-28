@@ -37,30 +37,35 @@ final class UsageReport
 
     /**
      * Newest month first, every month from the first with activity through the current one,
-     * quiet months included as zeros.
+     * quiet months included as zeros. `$months` limits it to the most recent months; null means all time.
      *
      * @return list<array{month: string, pdfs: int, forms_opened: int, failures: int, unique_feeds: int}>
      */
-    public function monthly(int $months = 24): array
+    public function monthly(?int $months = 24): array
     {
-        $cutoff = now()->subMonthsNoOverflow($months - 1)->startOfMonth();
+        $cutoff = $months === null ? null : now()->subMonthsNoOverflow($months - 1)->startOfMonth();
 
         $buckets = [];
 
-        foreach (UsageMonthly::query()->where('month', '>=', $cutoff->toDateString())->get() as $row) {
+        foreach (UsageMonthly::query()->when($cutoff, fn ($query) => $query->where('month', '>=', $cutoff->toDateString()))->get() as $row) {
             $bucket = &$this->bucket($buckets, substr($row->month, 0, 7));
             $this->applyMonthlyCount($bucket, $row->event, $row->outcome, $row->feed_hash, $row->count);
             unset($bucket);
         }
 
-        foreach (UsageEvent::query()->where('created_at', '>=', $cutoff)->get() as $event) {
+        foreach (UsageEvent::query()->when($cutoff, fn ($query) => $query->where('created_at', '>=', $cutoff))->get() as $event) {
             $bucket = &$this->bucket($buckets, $event->created_at->format('Y-m'));
             $this->applyMonthlyCount($bucket, $event->event, $event->outcome, $event->feed_hash, 1);
             unset($bucket);
         }
 
-        if ($buckets !== []) {
-            $month = Carbon::createFromFormat('Y-m', min(array_keys($buckets)))->startOfMonth();
+        $month = $this->firstActiveMonth();
+
+        if ($month !== null) {
+            if ($cutoff !== null && $month->lt($cutoff)) {
+                $month = $cutoff->copy();
+            }
+
             $thisMonth = now()->startOfMonth();
 
             while ($month->lte($thisMonth)) {
@@ -82,6 +87,20 @@ final class UsageReport
             array_keys($buckets),
             $buckets,
         );
+    }
+
+    /**
+     * The first month with any recorded activity in either table, or null if there is none.
+     */
+    private function firstActiveMonth(): ?Carbon
+    {
+        $firstEvent = UsageEvent::query()->min('created_at');
+        $candidates = array_filter([
+            UsageMonthly::query()->min('month'),
+            $firstEvent === null ? null : substr((string) $firstEvent, 0, 10),
+        ]);
+
+        return $candidates === [] ? null : Carbon::parse(min($candidates))->startOfMonth();
     }
 
     /**

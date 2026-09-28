@@ -15,13 +15,23 @@ class UsageController extends BaseController
     public function index(UsageReport $report): Response
     {
         return Inertia::render('Usage', [
-            'monthly' => $report->monthly(),
+            'monthly' => $report->monthly(12),
             'sources' => $report->sources(),
             'topFeeds' => $report->topFeeds(),
             'topReferrers' => $report->topReferrers(),
             'outcomes' => $report->outcomes(),
             'settings' => $report->settings(),
             'heaviest' => $report->heaviest(),
+        ]);
+    }
+
+    /**
+     * Render activity for every month since the service started recording.
+     */
+    public function months(UsageReport $report): Response
+    {
+        return Inertia::render('UsageMonths', [
+            'monthly' => $report->monthly(null),
         ]);
     }
 
