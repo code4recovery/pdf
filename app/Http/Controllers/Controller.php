@@ -359,7 +359,9 @@ class Controller extends BaseController
 
     /**
      * Arrange the book two pages per sheet in saddle-stitch folding order. Each sheet is
-     * twice the page width; blank slots from the layout are left empty.
+     * twice the page width; blank slots from the layout are left empty. Every page is drawn
+     * at exactly the page size, so a cover accepted within the size tolerance still meets
+     * the fold instead of overlapping it or leaving a gap.
      *
      * @param list<string> $paths Source files in book order.
      * @return array{bytes: string, sheets: int}
@@ -388,7 +390,7 @@ class Controller extends BaseController
                 foreach ([[$left, 0], [$right, $pageWidth]] as [$position, $x]) {
                     $slot = $sequence[$position - 1];
                     if ($slot !== null) {
-                        $writer->useTemplate($templates[$slot['source']][$slot['page']], $x, 0);
+                        $writer->useTemplate($templates[$slot['source']][$slot['page']], $x, 0, $pageWidth, $pageHeight);
                     }
                 }
             }
