@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
+use App\Support\FeedIdentity;
 use App\Support\UsageRecorder;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
@@ -41,6 +42,9 @@ class Controller extends BaseController
      * @var list<string>
      */
     private const REQUIRED_SHEET_COLUMNS = ['day', 'time', 'types'];
+
+    /** Response body when `/pdf` is requested without a feed URL (bots, bookmarks, PDF viewers re-requesting). */
+    public const MISSING_FEED_MESSAGE = 'No meeting feed URL was provided. Start from the form at the home page.';
 
     public function __construct(private readonly UsageRecorder $usage)
     {
@@ -388,7 +392,7 @@ class Controller extends BaseController
         $json = request('json');
 
         // Screen 1: No JSON URL provided - show simple URL input form
-        if (empty($json)) {
+        if (! FeedIdentity::isUsable($json)) {
             return Inertia::render('Home', ['screen' => 1]);
         }
 
@@ -492,6 +496,9 @@ class Controller extends BaseController
 
         //parse input
         $json = request('json');
+        if (! FeedIdentity::isUsable($json)) {
+            return response(self::MISSING_FEED_MESSAGE, 422);
+        }
         $width = floatval(request('width', 4.25)) * 72;
         $height = floatval(request('height', 11)) * 72;
         $numbering = request('numbering', false);

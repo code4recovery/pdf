@@ -51,7 +51,7 @@ class RecordUsage
     {
         $routeName = $request->route()?->getName();
 
-        if ($routeName === 'home' && empty($request->input('json'))) {
+        if (! FeedIdentity::isUsable($request->input('json'))) {
             return;
         }
 

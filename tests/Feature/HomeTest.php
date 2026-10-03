@@ -20,6 +20,17 @@ class HomeTest extends TestCase
     }
 
     #[Test]
+    public function screen_one_renders_when_json_param_is_not_a_string(): void
+    {
+        $this->get('/?json[]=https://example.test/feed')
+            ->assertOk()
+            ->assertInertia(fn ($page) =>
+                $page->component('Home')
+                    ->where('screen', 1)
+            );
+    }
+
+    #[Test]
     public function screen_two_renders_with_json_param(): void
     {
         Http::fake([
