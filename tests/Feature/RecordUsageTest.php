@@ -140,7 +140,7 @@ class RecordUsageTest extends TestCase
             throw new \RuntimeException('boom');
         })->middleware('usage')->name('pdf');
 
-        $response = $this->get('/usage-test-throw');
+        $response = $this->get('/usage-test-throw?json=https://example.test/feed');
 
         $response->assertStatus(500);
 
@@ -261,6 +261,16 @@ class RecordUsageTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk();
+        $this->assertSame(0, UsageEvent::count());
+    }
+
+    #[Test]
+    public function pdf_request_without_a_feed_url_is_not_recorded(): void
+    {
+        $this->get('/pdf')->assertStatus(422);
+        $this->get('/pdf?json[]=https://example.test/feed')->assertStatus(422);
+        $this->get('/?json[]=https://example.test/feed')->assertOk();
+
         $this->assertSame(0, UsageEvent::count());
     }
 

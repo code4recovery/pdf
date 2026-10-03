@@ -23,6 +23,15 @@ final class FeedIdentity
         public readonly ?string $url = null,
     ) {}
 
+    /**
+     * Whether a `json` request value can be used as a feed URL: a non-blank
+     * string. Query strings like `json[]=…` arrive as arrays.
+     */
+    public static function isUsable(mixed $json): bool
+    {
+        return is_string($json) && trim($json) !== '';
+    }
+
     public static function fromUrl(?string $url): self
     {
         $trimmed = trim((string) $url);

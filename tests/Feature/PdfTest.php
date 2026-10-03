@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -75,6 +76,26 @@ class PdfTest extends TestCase
         return [
             'unknown code' => ['language=xx'],
             'array' => ['language[]=x'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('missingFeedUrls')]
+    public function missing_feed_url_is_a_422(string $query): void
+    {
+        $response = $this->get('/pdf' . $query);
+
+        $response->assertStatus(422);
+        $this->assertSame(Controller::MISSING_FEED_MESSAGE, $response->getContent());
+    }
+
+    public static function missingFeedUrls(): array
+    {
+        return [
+            'no parameter' => [''],
+            'empty' => ['?json='],
+            'blank' => ['?json=%20'],
+            'array' => ['?json[]=https://example.test/feed'],
         ];
     }
 
