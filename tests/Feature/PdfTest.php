@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Http\Controllers\Controller;
+use Code4Recovery\Spec;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -59,6 +60,23 @@ class PdfTest extends TestCase
 
         $response->assertOk();
         $this->assertSame('application/pdf', $response->headers->get('Content-Type'));
+    }
+
+    #[Test]
+    #[DataProvider('specLanguages')]
+    public function pdf_generates_in_every_spec_language(string $language): void
+    {
+        $response = $this->get('/pdf?json=https://example.test/feed&language=' . $language);
+
+        $response->assertOk();
+        $this->assertSame('application/pdf', $response->headers->get('Content-Type'));
+    }
+
+    public static function specLanguages(): array
+    {
+        $languages = array_keys((new Spec)->getLanguages());
+
+        return array_combine($languages, array_map(fn (string $language): array => [$language], $languages));
     }
 
     #[Test]
