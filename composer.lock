@@ -214,16 +214,16 @@
         },
         {
             "name": "code4recovery/spec",
-            "version": "v1.1.9",
+            "version": "v1.1.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/code4recovery/spec.git",
-                "reference": "404117ad6059f9b1cf85e57124367c3223afc255"
+                "reference": "3ba5865b942dbea014b4145e3cef467772d47930"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/code4recovery/spec/zipball/404117ad6059f9b1cf85e57124367c3223afc255",
-                "reference": "404117ad6059f9b1cf85e57124367c3223afc255",
+                "url": "https://api.github.com/repos/code4recovery/spec/zipball/3ba5865b942dbea014b4145e3cef467772d47930",
+                "reference": "3ba5865b942dbea014b4145e3cef467772d47930",
                 "shasum": ""
             },
             "require": {
@@ -248,9 +248,10 @@
             "description": "The goal of the Meeting Guide API is help sync information about AA meetings. It was developed for the Meeting Guide app, but it is non-proprietary and other systems are encouraged to make use of it.",
             "support": {
                 "issues": "https://github.com/code4recovery/spec/issues",
-                "source": "https://github.com/code4recovery/spec/tree/v1.1.9"
+                "source": "https://github.com/code4recovery/spec/tree/v1.1.10"
             },
-            "time": "2026-03-06T23:05:53+00:00"
+            "time": "2026-11-25T01:01:29+00:00",
+            "published-time": "2026-11-25T02:54:53+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
@@ -10149,5 +10150,5 @@
         "php": "^8.2.0"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }

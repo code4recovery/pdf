@@ -528,6 +528,13 @@ class Controller extends BaseController
 
         //process data
         $strings = [
+            'de' => [
+                'days' => ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+                'noon' => 'Mittag',
+                'midnight' => 'Mitternacht',
+                'no_name' => 'Unbenanntes Meeting',
+                'meeting_types' => 'Meetingarten',
+            ],
             'en' => [
                 'days' => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
                 'noon' => 'Noon',
